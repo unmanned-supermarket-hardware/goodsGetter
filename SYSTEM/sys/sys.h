@@ -105,6 +105,7 @@
 #include "usart.h"
 #include "cJSON.h"
 #include "malloc.h"
+#include "motor.h"
 //JTAG模式设置定义
 #define JTAG_SWD_DISABLE   0X02
 #define SWD_ENABLE         0X01

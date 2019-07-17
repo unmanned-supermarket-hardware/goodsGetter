@@ -78,6 +78,7 @@ void usart1_send(u8 data)
 void usart1_sendString(char *data,u8 len)
 {
 	int i=0;
+	USART1->SR;
 	for(i=0;i<len;i++)
 	{
 		USART1->DR = data[i];
@@ -104,17 +105,32 @@ void USART1_IRQHandler(void)
 	if(USART1->SR&(1<<5))	//接收到数据
 	{	 
 		res=USART1->DR;
-		USART1->CR1 &=~(1<<3);  //屏蔽发送
-		//--------------------------------------
-		USART1_RECEIVE_BUF[USART1_RECEIVE_COUNTER] = res;
-		USART1_RECEIVE_COUNTER ++;
-		if(USART1_RECEIVE_COUNTER >=10)
+//		USART1->CR1 &=~(1<<3);  //屏蔽发送
+		//--------------------------------------向串口3传10个字节
+//		USART1_RECEIVE_BUF[USART1_RECEIVE_COUNTER] = res;
+//		USART1_RECEIVE_COUNTER ++;
+//		if(USART1_RECEIVE_COUNTER >=10)
+//		{
+//			usart3_sendString((char *) USART1_RECEIVE_BUF,10);
+//			USART1_RECEIVE_COUNTER = 0;
+//		}
+		//--------------------------------------快速命令
+		if(res == 'r')
 		{
-			usart3_sendString((char *) USART1_RECEIVE_BUF,10);
-			USART1_RECEIVE_COUNTER = 0;
+			motor_reset(GET_MOTOR);
+			
+		}
+		else if (res == 'v')
+		{
+			motor_enter_velocity_mode(GET_MOTOR);
+		}
+		else if (res >= '0' && res <='9')  //速度模式测试
+		{
+			goTo(3.0);
+			//motor_set_velocity(GET_MOTOR,res - '0');
 		}
 		//--------------------------------------
-		USART1->CR1 |=1<<3;  //重新开启发送
+//		USART1->CR1 |=1<<3;  //重新开启发送
 	}
 #if SYSTEM_SUPPORT_OS 	//如果SYSTEM_SUPPORT_OS为真，则需要支持OS.
 	OSIntExit();  											 

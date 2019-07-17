@@ -53,6 +53,7 @@ void uart2_init(u32 pclk2,u32 bound)
 }
 /**************************************************************************
 函数功能：串口2接收中断
+连接到红外，获取红外值并赋值给current_depth
 入口参数：无
 返回  值：无
 **************************************************************************/
@@ -62,6 +63,7 @@ u8 USART2_COUNT = 0;
 double d2 =0;
 char d2Str[5];
 u8 USART2_RX_FLAG = 0;
+extern double current_depth_in_m;
 //接收状态
 //bit15，	接收完成标志
 //bit14，	接收到0x0d
@@ -73,9 +75,58 @@ int USART2_IRQHandler(void)
 	char strTemp[64];
 	if(USART2->SR&(1<<5))//接收到数据
 	{	      
-		res =USART2->DR;
-		sprintf(strTemp,"u2:%c\n",res);
-		usart2_sendString(strTemp,strlen(strTemp));
+			res =USART2->DR;
+		USART2_RX_FLAG = 1;
+		//usart2_send(res);
+			if((USART2_RX_STA&0x8000)==0)//接收未完成
+			{
+				if(USART2_RX_STA&0x4000)//接收到了0x0d
+				{
+					if(res!=0x0a)USART2_RX_STA=0;//接收错误,重新开始
+					else 
+					{
+						USART2_RX_STA|=0x8000;	//接收完成了
+						USART2_RX_BUF[USART2_RX_STA&0X3FFF]=res;
+						//usart1_sendString((char *)USART2_RX_BUF,USART2_COUNT+1);
+						//-------------------
+						USART2_RX_BUF[(USART2_RX_STA&0X3FFF)-2] = '\0';
+						strncpy(d2Str,(char *)(USART2_RX_BUF+2),6);
+						sprintf(strTemp,"%s\r\n",d2Str);
+						
+						//usart1_sendString(strTemp,strlen(strTemp));
+						if(USART2_RX_BUF[0] =='D')
+						{
+				
+							current_depth_in_m = atof(d2Str);
+							//current_depth_mm = 5;
+						}
+							
+						else
+							current_depth_in_m =-1;
+						//-------------------
+
+						USART2_RX_STA = 0;
+						USART2_COUNT = 0;
+					}
+					
+				}else //还没收到0X0D
+				{	
+					if(res==0x0d)
+					{
+						USART2_RX_STA|=0x4000;
+						USART2_RX_BUF[USART2_RX_STA&0X3FFF]=res;
+						USART2_RX_STA++;
+						USART2_COUNT ++;
+					}
+					else
+					{
+						USART2_RX_BUF[USART2_RX_STA&0X3FFF]=res;
+						USART2_RX_STA++;
+						USART2_COUNT ++;
+						if(USART2_RX_STA>(USART_REC_LEN-1))USART2_RX_STA=0;//接收数据错误,重新开始接收	  
+					}		 
+				}
+			}
 	}
 return 0;	
 }
@@ -99,6 +150,7 @@ void usart2_sendString(char *data,u8 len)
 	USART2_RX_STA =0;    //如果接收到一半就放弃这组数据
 	USART2_COUNT =0;
 	
+	USART2->SR;  //这句一定要加
 	for(i=0;i<len;i++)
 	{
 		USART2->DR = data[i];
@@ -190,6 +242,8 @@ void usart3_sendString(char *data,u8 len)
 	USART3->CR1 &=~(1<<2);  //屏蔽接收
 	USART3_RX_STA =0;    //如果接收到一半就放弃这组数据
 	USART3_COUNT =0;
+	
+	USART3->SR;
 	for(i=0;i<len;i++)
 	{
 		USART3->DR = data[i];
@@ -279,6 +333,8 @@ void uart4_sendString(char *data,u8 len)
 	UART4->CR1 &=~(1<<2);  //屏蔽接收
 	UART4_RX_STA =0;    //如果接收到一半就放弃这组数据
 	UART4_COUNT =0;
+	
+	UART4->SR;
 	for(i=0;i<len;i++)
 	{
 		UART4->DR = data[i];
@@ -383,6 +439,8 @@ void uart5_sendString(char * data ,u8 len)
 	UART5->CR1 &=~(1<<2);  //屏蔽接收
 	UART5_RX_STA =0;    //如果接收到一半就放弃这组数据
 	UART5_COUNT =0;
+	
+	UART5->SR;
 	for(i=0;i<len;i++)
 	{
 		UART5->DR = data[i];
