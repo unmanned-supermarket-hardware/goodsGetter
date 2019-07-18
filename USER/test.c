@@ -30,6 +30,7 @@ int main(void)
 	uart3_init(36,115200);
 	uart4_init(36,115200);
 	uart5_init(36,115200);
+	relay_init();
 	delay_ms(1000);
 	
 
@@ -50,8 +51,15 @@ int main(void)
 	delay_ms(500);
 	while(1)
 	{
-		printf("current_depth_in_m = %f \nd2Str = %s\n\n",current_depth_in_m,USART2_RX_BUF);
-		delay_ms(500);
+		//printf("current_depth_in_m = %f \nd2Str = %s\n\n",current_depth_in_m,USART2_RX_BUF);
+
+		printf("1");
+		setMagnet(MAGNET_ON);
+		delay_ms(1000);
+		printf("0");
+		setMagnet(MAGNET_OFF);
+		delay_ms(1000);
+
 	}	 
 }
 
