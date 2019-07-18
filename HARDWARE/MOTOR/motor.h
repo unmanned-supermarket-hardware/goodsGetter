@@ -52,6 +52,8 @@ void motor_check_on_line(u8 motor);
 
 void goTo(double depthInM);
 
+void fallDown(void);
+void raiseUp(void);
 //--------------------------------
 void motor_stop(u8 motor);
 void motor_init(u8 motor);

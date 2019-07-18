@@ -31,6 +31,7 @@ int main(void)
 	uart4_init(36,115200);
 	uart5_init(36,115200);
 	relay_init();
+	key_init();
 	delay_ms(1000);
 	
 
@@ -46,19 +47,25 @@ int main(void)
 	delay_ms(500);
 	motor_reset(GET_MOTOR);  //不知为何第一遍发送会缺头一个字节，因此发送两边
 	delay_ms(600);
-
+	motor_reset(DROP_MOTOR);  //不知为何第一遍发送会缺头一个字节，因此发送两边
+	delay_ms(600);
+	
 	motor_enter_velocity_mode(GET_MOTOR);
+	delay_ms(500);
+	motor_enter_velocity_mode(DROP_MOTOR);
 	delay_ms(500);
 	while(1)
 	{
 		//printf("current_depth_in_m = %f \nd2Str = %s\n\n",current_depth_in_m,USART2_RX_BUF);
-
-		printf("1");
-		setMagnet(MAGNET_ON);
+		//printf("bottom_key  = %d top_key = %d",is_bottom_key_pressed(),is_bottom_key_pressed());
+		printf("%d\n",key_scan());
 		delay_ms(1000);
-		printf("0");
-		setMagnet(MAGNET_OFF);
-		delay_ms(1000);
+//		printf("1");
+//		setMagnet(MAGNET_ON);
+//		delay_ms(1000);
+//		printf("0");
+//		setMagnet(MAGNET_OFF);
+//		delay_ms(1000);
 
 	}	 
 }

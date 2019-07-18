@@ -124,18 +124,26 @@ void USART1_IRQHandler(void)
 		{
 			motor_enter_velocity_mode(GET_MOTOR);
 		}
-//		else if (res >= '0' && res <='9')  //速度模式测试
+//		else if (res == 'g' )  //goto测试
 //		{
 //			goTo(3.0);
 //			//motor_set_velocity(GET_MOTOR,res - '0');
 //		}
-		else if(res == '1')
+//		else if(res == '1')
+//		{
+//			setMagnet(MAGNET_ON);
+//		}
+//		else if(res == '0')
+//		{
+//			setMagnet(MAGNET_OFF);
+//		}
+		else if(res == 'd')  //falldown 测试
 		{
-			setMagnet(MAGNET_ON);
+			fallDown();
 		}
-		else if(res == '0')
+		else if(res == 'u')  //raiseUp 测试
 		{
-			setMagnet(MAGNET_OFF);
+			raiseUp();
 		}
 		//--------------------------------------
 //		USART1->CR1 |=1<<3;  //重新开启发送
