@@ -54,18 +54,21 @@ int main(void)
 	delay_ms(500);
 	motor_enter_velocity_mode(DROP_MOTOR);
 	delay_ms(500);
+	
+	
 	while(1)
 	{
-		//printf("current_depth_in_m = %f \nd2Str = %s\n\n",current_depth_in_m,USART2_RX_BUF);
+		printf("current_depth_in_m = %f \nd2Str = %s\n\n",current_depth_in_m,USART2_RX_BUF);
 		//printf("bottom_key  = %d top_key = %d",is_bottom_key_pressed(),is_bottom_key_pressed());
-		printf("%d\n",key_scan());
+		//printf("%d\n",key_scan());
+		goTo(0.82);
+		setMagnet(MAGNET_ON);
 		delay_ms(1000);
-//		printf("1");
-//		setMagnet(MAGNET_ON);
-//		delay_ms(1000);
-//		printf("0");
-//		setMagnet(MAGNET_OFF);
-//		delay_ms(1000);
+		goTo(0.62);
+		setMagnet(MAGNET_OFF);
+		delay_ms(1000);
+		
+
 
 	}	 
 }

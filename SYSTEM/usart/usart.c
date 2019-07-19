@@ -124,19 +124,19 @@ void USART1_IRQHandler(void)
 		{
 			motor_enter_velocity_mode(GET_MOTOR);
 		}
-//		else if (res == 'g' )  //goto≤‚ ‘
-//		{
-//			goTo(3.0);
-//			//motor_set_velocity(GET_MOTOR,res - '0');
-//		}
-//		else if(res == '1')
-//		{
-//			setMagnet(MAGNET_ON);
-//		}
-//		else if(res == '0')
-//		{
-//			setMagnet(MAGNET_OFF);
-//		}
+		else if (res == 'g' )  //goto≤‚ ‘
+		{
+			goTo(3.0);
+			//motor_set_velocity(GET_MOTOR,res - '0');
+		}
+		else if(res == '1')
+		{
+			setMagnet(MAGNET_ON);
+		}
+		else if(res == '0')
+		{
+			setMagnet(MAGNET_OFF);
+		}
 		else if(res == 'd')  //falldown ≤‚ ‘
 		{
 			fallDown();
