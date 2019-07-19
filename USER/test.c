@@ -32,6 +32,7 @@ int main(void)
 	uart5_init(36,115200);
 	relay_init();
 	key_init();
+	TIM3_Int_Init(5000,7199);//10Khz的计数频率，计数到5000为500ms  
 	delay_ms(1000);
 	
 
@@ -58,7 +59,7 @@ int main(void)
 	
 	while(1)
 	{
-		printf("current_depth_in_m = %f \nd2Str = %s\n\n",current_depth_in_m,USART2_RX_BUF);
+		
 		//printf("bottom_key  = %d top_key = %d",is_bottom_key_pressed(),is_bottom_key_pressed());
 		//printf("%d\n",key_scan());
 		goTo(0.82);
