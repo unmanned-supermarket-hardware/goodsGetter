@@ -31,8 +31,11 @@ int main(void)
 	uart4_init(36,115200);
 	uart5_init(36,115200);
 	relay_init();
-	key_init();
+	//key_init();
+	TIM2_Int_Init(60000,7199);//10Khz的计数频率，计数到5000为5000ms  6S
 	TIM3_Int_Init(5000,7199);//10Khz的计数频率，计数到5000为500ms  
+	
+	
 	delay_ms(1000);
 	
 
@@ -56,19 +59,23 @@ int main(void)
 	motor_enter_velocity_mode(DROP_MOTOR);
 	delay_ms(500);
 	
+	reachOut();
+	hang();
+	drawBack();
 	
 	while(1)
 	{
 		
 		//printf("bottom_key  = %d top_key = %d",is_bottom_key_pressed(),is_bottom_key_pressed());
 		//printf("%d\n",key_scan());
-		goTo(0.82);
-		setMagnet(MAGNET_ON);
-		delay_ms(1000);
-		goTo(0.62);
-		setMagnet(MAGNET_OFF);
-		delay_ms(1000);
+//		goTo(0.82);
+//		setMagnet(MAGNET_ON);
+//		delay_ms(1000);
+//		goTo(0.62);
+//		setMagnet(MAGNET_OFF);
+//		delay_ms(1000);
 		
+
 
 
 	}	 
