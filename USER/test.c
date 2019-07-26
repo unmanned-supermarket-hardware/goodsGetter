@@ -4,25 +4,31 @@
 #include "led.h" 
 #include "key.h" 
 
-//ALIENTEK Mini STM32开发板范例代码3
-//串口实验   
-//技术支持：www.openedv.com
-//广州市星翼电子科技有限公司
-# define DATA_LEN 13
+
 
 extern u8 startOpen,startClose,isOpen;
-extern u8 USART2_RX_FLAG;
-extern u8 USART2_RX_BUF[64]; //接收到的数据
-extern u8 USART3_RX_BUF[64]; //接收到的数据
-extern u8 UART5_RX_BUF[64]; //接收到的数据
+extern u8 new_master_msg;
+extern u8 new_zmodule_msg;
+extern u8 USART1_JSON_BUF[256]; //接收到的数据
+extern u8 USART2_JSON_BUF[256]; //接收到的数据
+extern u8 USART3_JSON_BUF[256]; //接收到的数据
+extern u8 UART5_JSON_BUF[256]; //接收到的数据
 
 
+double destination_height;
+double destination_depth;
+int global_state = IDLE;
 
 
 
 int main(void)
 {			
-
+	
+	cJSON *root;
+	char strSend[MAX_MSG_SIZE];
+	u8 strSendLen;
+	char *strJson;
+	
 	Stm32_Clock_Init(9); //系统时钟设置
 	delay_init(72);	     //延时初始化 
 	uart_init(72,115200);	 
@@ -41,28 +47,50 @@ int main(void)
 
 	//红外初始化
 	printf("测距模块初始化");
-	delay_ms(500);
+	//delay_ms(500);
 	usart2_sendString("iFACM:0",7);
 	delay_ms(500);
 
 
-	//取货电机初始化
-	printf("电机初始化");
-	delay_ms(500);
-	motor_reset(GET_MOTOR);  //不知为何第一遍发送会缺头一个字节，因此发送两边
-	delay_ms(600);
-	motor_reset(DROP_MOTOR);  //不知为何第一遍发送会缺头一个字节，因此发送两边
-	delay_ms(600);
+//	//取货电机初始化
+//	printf("电机初始化");
+//	delay_ms(500);
+//	motor_reset(GET_MOTOR);  //不知为何第一遍发送会缺头一个字节，因此发送两边
+//	delay_ms(600);
+//	motor_reset(DROP_MOTOR);  //不知为何第一遍发送会缺头一个字节，因此发送两边
+//	delay_ms(600);
+//	
+//	motor_enter_velocity_mode(GET_MOTOR);
+//	delay_ms(500);
+//	motor_enter_velocity_mode(DROP_MOTOR);
+//	delay_ms(500);
 	
-	motor_enter_velocity_mode(GET_MOTOR);
-	delay_ms(500);
-	motor_enter_velocity_mode(DROP_MOTOR);
-	delay_ms(500);
-	
-	reachOut();
-	hang();
-	drawBack();
-	
+
+	//-----------------------------------json模拟区：主控发来取货命令
+		
+//	
+//		root=cJSON_CreateObject();
+
+//		cJSON_AddStringToObject(root,"businessType","0014");
+//		cJSON_AddNumberToObject(root,"Height",0.5);
+//		cJSON_AddNumberToObject(root,"Depth",0.6);
+//		 
+//		strSendLen = generate_send_str(root,strSend);
+//		
+//		
+//		usart1_sendString(strSend,strSendLen);
+//		
+//		strJson =cJSON_Print(root); 
+//		printf("json_size = %d\n",strlen(strJson));
+//-----------------------------------json模拟区		：模组高度到位命令
+//		root=cJSON_CreateObject();
+
+//		cJSON_AddStringToObject(root,"businessType","0023");
+//		cJSON_AddNumberToObject(root,"Result",1);
+
+//		
+//		strSendLen = generate_send_str(root,strSend);
+//		usart1_sendString(strSend,strSendLen);
 	while(1)
 	{
 		
@@ -75,12 +103,29 @@ int main(void)
 //		setMagnet(MAGNET_OFF);
 //		delay_ms(1000);
 		
-
-
+		if(new_master_msg)
+		{
+			//printf("%s\n",USART1_JSON_BUF);
+			switch(resolve_master_msg())
+			{
+				case(MASTER_MSG_CHECK):{break;}
+				case(MASTER_MSG_GET):{on_get_good(); break;}
+			}
+			new_master_msg = 0;
+		}
+		if(new_zmodule_msg)
+		{
+			//printf("%s\n",UART5_JSON_BUF);
+			switch(resolve_zmodule_msg())
+			{
+				case(ZMODULE_MSG_ARRIVE_HEIGHT):{on_arrive_height(); break;}
+	
+			}
+			new_zmodule_msg = 0;
+		}
 
 	}	 
 }
-
 
 
 

@@ -93,8 +93,18 @@ u8 isOpen = 0;
 /**************************实现函数**********************************************
 *功    能:		usart1接收中断
 *********************************************************************************/
-u8 USART1_RECEIVE_COUNTER = 0;
-u8 USART1_RECEIVE_BUF[10] ;
+u8 new_master_msg = 0;
+u8 USART1_JSON_BUF[256]; //接收到的数据
+u8 USART1_RX_STA=0; 
+u16 USART1_JSON_SIZE = 0;
+u16 USART1_JSON_INDEX = 0;
+
+#define UART_IDLE 0
+#define WELL 1 //收到#
+#define EXCLAMATION 2 //收到！
+#define HIGH_SIZE 3
+#define LOW_SIZE 4
+#define JSON_DATA 5
 void USART1_IRQHandler(void)
 {
 	u8 res;	
@@ -106,45 +116,32 @@ void USART1_IRQHandler(void)
 	{	 
 		res=USART1->DR;
 //		USART1->CR1 &=~(1<<3);  //屏蔽发送
-		//--------------------------------------向串口3传10个字节
-//		USART1_RECEIVE_BUF[USART1_RECEIVE_COUNTER] = res;
-//		USART1_RECEIVE_COUNTER ++;
-//		if(USART1_RECEIVE_COUNTER >=10)
-//		{
-//			usart3_sendString((char *) USART1_RECEIVE_BUF,10);
-//			USART1_RECEIVE_COUNTER = 0;
-//		}
-		//--------------------------------------快速命令
-		if(res == 'r')
+		//--------------------------------------
+		switch(USART1_RX_STA)
 		{
-			motor_reset(GET_MOTOR);
+			case(UART_IDLE):	{if(res == '#') 			USART1_RX_STA = WELL;					break;}
+			case(WELL):				{if(res == '!') 			USART1_RX_STA = EXCLAMATION;	break;}
+			case(EXCLAMATION):{USART1_JSON_SIZE = res<<8; 	USART1_RX_STA = HIGH_SIZE;		break;}
+			case(HIGH_SIZE):	{USART1_JSON_SIZE += res; 		USART1_RX_STA = LOW_SIZE;			break;}
+			case(LOW_SIZE):		
+			{
+				if(USART1_JSON_INDEX < USART1_JSON_SIZE -1)
+				{
+					USART1_JSON_BUF[USART1_JSON_INDEX]=res; 
+					USART1_JSON_INDEX++;
+				}
+				else if(USART1_JSON_INDEX == USART1_JSON_SIZE -1) //最后一个字节了
+				{
+					USART1_JSON_BUF[USART1_JSON_INDEX]=res; 
+					USART1_JSON_BUF[USART1_JSON_SIZE]= '\0'; 
+					USART1_JSON_INDEX = 0;
+					USART1_RX_STA = UART_IDLE;
+					new_master_msg = 1;
+				}					
+				break;
+			}
+		}	
 			
-		}
-		else if (res == 'v')
-		{
-			motor_enter_velocity_mode(GET_MOTOR);
-		}
-		else if (res == 'g' )  //goto测试
-		{
-			goTo(3.0);
-			//motor_set_velocity(GET_MOTOR,res - '0');
-		}
-		else if(res == '1')
-		{
-			setMagnet(MAGNET_ON);
-		}
-		else if(res == '0')
-		{
-			setMagnet(MAGNET_OFF);
-		}
-		else if(res == 'd')  //falldown 测试
-		{
-			fallDown();
-		}
-		else if(res == 'u')  //raiseUp 测试
-		{
-			raiseUp();
-		}
 		//--------------------------------------
 //		USART1->CR1 |=1<<3;  //重新开启发送
 	}

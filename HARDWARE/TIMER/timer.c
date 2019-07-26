@@ -20,7 +20,8 @@ void TIM3_IRQHandler(void)
 { 		    		  			    
 	if(TIM3->SR&0X0001)//溢出中断
 	{
-		//printf("current_depth_in_m = %f \nd2Str = %s\n\n",current_depth_in_m,USART2_RX_BUF);		   				     	    	
+		printf("current_depth_in_m =  \nd2Str = %s\n\n",USART2_RX_BUF);		   	
+		//printf("%d\n",atoi("0015"));
 	}				   
 	TIM3->SR&=~(1<<0);//清除中断标志位 	    
 }

@@ -24,9 +24,9 @@ extern u8 stick_state;
 void relay_init(void);	//初始化		 		
 void setMagnet(u8 state); //设置电磁铁状态，state取值为MAGNET_ON或MAGNET_OFF
 
-void reachOut(); //控制伸缩杆伸出
-void drawBack(); //控制伸缩杆缩回
-void hang();
+void reachOut(void); //控制伸缩杆伸出
+void drawBack(void); //控制伸缩杆缩回
+void hang(void);
 #endif
 
 

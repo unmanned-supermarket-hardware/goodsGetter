@@ -365,7 +365,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F10X_HD</Define>
               <Undefine></Undefine>
-              <IncludePath>..\SYSTEM\delay;..\SYSTEM\sys;..\SYSTEM\usart;..\HARDWARE\LED;..\HARDWARE\KEY;..\HARDWARE\USARTX;..\HARDWARE\JSON;..\HARDWARE\MALLOC;..\HARDWARE\MOTOR;..\HARDWARE\RELAY;..\HARDWARE\TIMER</IncludePath>
+              <IncludePath>..\SYSTEM\delay;..\SYSTEM\sys;..\SYSTEM\usart;..\HARDWARE\LED;..\HARDWARE\KEY;..\HARDWARE\USARTX;..\HARDWARE\JSON;..\HARDWARE\MALLOC;..\HARDWARE\MOTOR;..\HARDWARE\RELAY;..\HARDWARE\TIMER;..\HARDWARE\MASTER_COMMUNICATION;..\HARDWARE\ZMODULE_COMMUNICATION;..\HARDWARE\COMMON_COMMUNICATION</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -487,6 +487,21 @@
               <FileName>timer.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\TIMER\timer.c</FilePath>
+            </File>
+            <File>
+              <FileName>master_communication.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\MASTER_COMMUNICATION\master_communication.c</FilePath>
+            </File>
+            <File>
+              <FileName>zmodule_communication.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\ZMODULE_COMMUNICATION\zmodule_communication.c</FilePath>
+            </File>
+            <File>
+              <FileName>common_communication.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\COMMON_COMMUNICATION\common_communication.c</FilePath>
             </File>
           </Files>
         </Group>

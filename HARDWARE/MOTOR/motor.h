@@ -50,7 +50,7 @@ void motor_check_on_line(u8 motor);
 
 //ÉÏ²ãº¯Êý
 
-void goTo(double depthInM);
+int goTo(double depthInM);
 
 void fallDown(void);
 void raiseUp(void);

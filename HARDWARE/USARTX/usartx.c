@@ -1,6 +1,6 @@
 
 #include "usartx.h"
-//----------------------------------------------------------串口2-------------------------------------------------------------//
+//----------------------------------------------------------串口2：连接测距模块-------------------------------------------------------------//
 void uart2_init(u32 pclk2,u32 bound)
 {  	 
 	float temp;
@@ -50,6 +50,8 @@ void uart2_init(u32 pclk2,u32 bound)
 	USART2->CR1|=1<<8;    //PE中断使能
 	USART2->CR1|=1<<5;    //接收缓冲区非空中断使能	    	
 	MY_NVIC_Init(0,1,USART2_IRQn,2);//组2，最低优先级 
+	
+	USART2->SR;  //这句一定要加
 }
 /**************************************************************************
 函数功能：串口2接收中断
@@ -150,7 +152,7 @@ void usart2_sendString(char *data,u8 len)
 	USART2_RX_STA =0;    //如果接收到一半就放弃这组数据
 	USART2_COUNT =0;
 	
-	USART2->SR;  //这句一定要加
+
 	for(i=0;i<len;i++)
 	{
 		USART2->DR = data[i];
@@ -159,7 +161,7 @@ void usart2_sendString(char *data,u8 len)
 	USART2->CR1 |=1<<2;   //重新开启接收
 }
 
-//----------------------------------------------------------串口3-------------------------------------------------------------//
+//----------------------------------------------------------串口3：连取货电机-------------------------------------------------------------//
 
 /**************************************************************************
 函数功能：串口3初始化
@@ -196,6 +198,8 @@ void uart3_init(u32 pclk2,u32 bound)
 	USART3->CR1|=1<<8;    //PE中断使能
 	USART3->CR1|=1<<5;    //接收缓冲区非空中断使能	    	
 	MY_NVIC_Init(0,1,USART3_IRQn,2);//组2，最低优先级 
+	
+	USART3->SR;
 }
 
 /**************************************************************************
@@ -243,7 +247,7 @@ void usart3_sendString(char *data,u8 len)
 	USART3_RX_STA =0;    //如果接收到一半就放弃这组数据
 	USART3_COUNT =0;
 	
-	USART3->SR;
+	
 	for(i=0;i<len;i++)
 	{
 		USART3->DR = data[i];
@@ -251,7 +255,7 @@ void usart3_sendString(char *data,u8 len)
 	}
 	USART3->CR1 |=1<<2;   //重新开启接收
 }
-//----------------------------------------------------------串口4-------------------------------------------------------------//
+//----------------------------------------------------------串口4：原定连卸货电机，现在不需要了-------------------------------------------------------------//
 
 /**************************************************************************
 函数功能：串口4初始化
@@ -287,6 +291,7 @@ void uart4_init(u32 pclk2,u32 bound)
 	UART4->CR1|=1<<8;    //PE中断使能
 	UART4->CR1|=1<<5;    //接收缓冲区非空中断使能	    	
 	MY_NVIC_Init(0,1,UART4_IRQn,2);//组2，最低优先级 
+	UART4->SR;
 }
 
 /**************************************************************************
@@ -334,7 +339,7 @@ void uart4_sendString(char *data,u8 len)
 	UART4_RX_STA =0;    //如果接收到一半就放弃这组数据
 	UART4_COUNT =0;
 	
-	UART4->SR;
+	
 	for(i=0;i<len;i++)
 	{
 		UART4->DR = data[i];
@@ -342,7 +347,7 @@ void uart4_sendString(char *data,u8 len)
 	}
 	UART4->CR1 |=1<<2;   //重新开启接收
 }
-//----------------------------------------------------------串口5-------------------------------------------------------------//
+//----------------------------------------------------------串口5：连线性模组-------------------------------------------------------------//
 
 /**************************实现函数**********************************************
 *功    能:		uart5初始化
@@ -389,6 +394,8 @@ void uart5_init(u32 pclk1,u32 bound)
 	UART5->CR1|=1<<8;    //PE中断使能   这个8和5好像每个串口都一样
 	UART5->CR1|=1<<5;    //接收缓冲区非空中断使能	    	
 	MY_NVIC_Init(0,1,UART5_IRQn,2);//抢占优先级是3 响应优先级是3 组2，最低优先级 
+	
+	UART5->SR;
 }
 
 
@@ -397,27 +404,54 @@ void uart5_init(u32 pclk1,u32 bound)
 入口参数：无
 返回  值：无
 **************************************************************************/
-u8 UART5_RX_BUF[64]; //接收到的数据
-u16 UART5_RX_STA=0; 
-u8 UART5_COUNT = 0;
-char d5Str[5];
-double d5 = 0;
-//接收状态
-//bit15，	接收完成标志
-//bit14，	接收到0x0d
-//bit13~0，	接收到的有效字节数目
+
+u8 new_zmodule_msg = 0;
+u8 UART5_JSON_BUF[256]; //接收到的数据
+u8 UART5_RX_STA=0; 
+u16 UART5_JSON_SIZE = 0;
+u16 UART5_JSON_INDEX = 0;
+
+#define UART_IDLE 0
+#define WELL 1 //收到#
+#define EXCLAMATION 2 //收到！
+#define HIGH_SIZE 3
+#define LOW_SIZE 4
+#define JSON_DATA 5
 
 int UART5_IRQHandler(void)
 {	
-	u8 res;
-	char strTemp[64];
-	if(UART5->SR&(1<<5))//接收到数据
-	{	      
-			res =UART5->DR;
-			sprintf(strTemp,"u5:%c\n",res);
-			uart5_sendString(strTemp,strlen(strTemp));
-	}
-return 0;	
+		u8 res; 
+    char strTemp[64];
+
+    if(UART5->SR&(1<<5))   //接收到数据
+    {    
+        res=UART5->DR;
+        switch(UART5_RX_STA)
+        {
+            case(UART_IDLE):    {if(res == '#')             UART5_RX_STA = WELL;                   break;}
+            case(WELL):             {if(res == '!')             UART5_RX_STA = EXCLAMATION;    break;}
+            case(EXCLAMATION):{UART5_JSON_SIZE = res<<8;   UART5_RX_STA = HIGH_SIZE;      break;}
+            case(HIGH_SIZE):    {UART5_JSON_SIZE += res;       UART5_RX_STA = LOW_SIZE;           break;}
+            case(LOW_SIZE):     
+            {
+                if(UART5_JSON_INDEX < UART5_JSON_SIZE -1)
+                {
+                    UART5_JSON_BUF[UART5_JSON_INDEX]=res; 
+                    UART5_JSON_INDEX++;
+                }
+                else if(UART5_JSON_INDEX == UART5_JSON_SIZE -1) //最后一个字节了
+                {
+                    UART5_JSON_BUF[UART5_JSON_INDEX]=res; 
+                    UART5_JSON_BUF[UART5_JSON_SIZE]= '\0'; 
+                    UART5_JSON_INDEX = 0;
+                    UART5_RX_STA = UART_IDLE;
+                    new_zmodule_msg = 1;
+                }                   
+                break;
+            }
+        }
+			}				
+	return 0;	
 }
 
 /**************************实现函数**********************************************
@@ -438,9 +472,9 @@ void uart5_sendString(char * data ,u8 len)
 	int i=0;
 	UART5->CR1 &=~(1<<2);  //屏蔽接收
 	UART5_RX_STA =0;    //如果接收到一半就放弃这组数据
-	UART5_COUNT =0;
+
 	
-	UART5->SR;
+	
 	for(i=0;i<len;i++)
 	{
 		UART5->DR = data[i];

@@ -125,13 +125,12 @@ void motor_check_on_line(u8 motor)
 *********************************************************************************/
 //控制取货电机移动到某个位置
 //depthInMm：取货电机移动到的位置的货物深度，单位：Mm
-u8 last_state = -1;
-u8 current_state = -1;
-u8 state =-1;
+
+int state =-1;
 #define FAR 0
 #define NEAR 1
 #define TOO_MUCH 2
-void goTo(double depthInM)
+int goTo(double depthInM)
 {
 	printf("goto");
 	while(1)   //红外表示还没到那个位置
@@ -141,7 +140,7 @@ void goTo(double depthInM)
 		{
 			printf("error");
 			motor_set_velocity(GET_MOTOR,0);
-			return;
+			return -1;
 		}
 		else if(depthInM - current_depth_in_m >SLOW_RANGE && state != FAR)  //离目标差的还远，快速运动
 		{
@@ -163,7 +162,7 @@ void goTo(double depthInM)
 			motor_set_velocity(GET_MOTOR,0);
 			delay_ms(10);
 			state = -1;
-			return;
+			return 1;
 		}
 		else if(depthInM - current_depth_in_m < -EQUAL_RANGE && state!= TOO_MUCH)  //超了，往回走
 		{
