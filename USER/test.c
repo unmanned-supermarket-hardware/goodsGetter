@@ -18,8 +18,9 @@ extern u8 UART5_JSON_BUF[256]; //接收到的数据
 double destination_height;
 double destination_depth;
 int global_state = IDLE;
-
-
+int is_distance_receiving = 1;  //表示红外一直在接收数据
+int is_distance_right = 1;      //表示红外接收数据正常，为D = ***m，而非Error
+u32 distanceModuleMonitor = 0;
 
 int main(void)
 {			
@@ -28,6 +29,8 @@ int main(void)
 	char strSend[MAX_MSG_SIZE];
 	u8 strSendLen;
 	char *strJson;
+	//每当串口收到新红外数据时就清0，用于检测红外是否仍然在传数据
+	
 	
 	Stm32_Clock_Init(9); //系统时钟设置
 	delay_init(72);	     //延时初始化 
@@ -38,12 +41,6 @@ int main(void)
 	uart5_init(36,115200);
 	relay_init();
 	//key_init();
-	TIM2_Int_Init(60000,7199);//10Khz的计数频率，计数到5000为5000ms  6S
-	TIM3_Int_Init(5000,7199);//10Khz的计数频率，计数到5000为500ms  
-	
-	
-	delay_ms(1000);
-	
 
 	//红外初始化
 	printf("测距模块初始化");
@@ -65,7 +62,14 @@ int main(void)
 //	motor_enter_velocity_mode(DROP_MOTOR);
 //	delay_ms(500);
 	
-
+		//定时器初始化：定时输出distance供debug
+		//TIM2_Int_Init(60000,7199);//10Khz的计数频率，计数到5000为5000ms  6S
+		TIM3_Int_Init(5000,7199);//10Khz的计数频率，计数到5000为500ms  
+		//独立看门狗初始化
+		//625是1s，溢出时间与参数二成正比
+		//IWDG_Init(4,625);    //与分频数为64,重载值为625,溢出时间为1s	   
+		
+		
 	//-----------------------------------json模拟区：主控发来取货命令
 		
 //	
@@ -91,6 +95,14 @@ int main(void)
 //		
 //		strSendLen = generate_send_str(root,strSend);
 //		usart1_sendString(strSend,strSendLen);
+//-----------------------------------json模拟区		：主控查询状态
+//		root=cJSON_CreateObject();
+
+//		cJSON_AddStringToObject(root,"businessType","0013");
+
+
+//		strSendLen = generate_send_str(root,strSend);
+//		usart1_sendString(strSend,strSendLen);
 	while(1)
 	{
 		
@@ -103,16 +115,37 @@ int main(void)
 //		setMagnet(MAGNET_OFF);
 //		delay_ms(1000);
 		
+		
+		//测距模块监视
+		distanceModuleMonitor++;
+		if(distanceModuleMonitor>655344)
+		{
+			//printf("too long without distance data received!\n");
+			is_distance_receiving = 0;
+		}
+		else
+			is_distance_receiving = 1;
+		
+		//如果测距模块工作状态不正常，
+		if(!is_distance_receiving || !is_distance_right)
+		{
+			//电机运动逻辑得考虑啊
+			;
+		}
+		//处理主控发来的消息
 		if(new_master_msg)
 		{
 			//printf("%s\n",USART1_JSON_BUF);
 			switch(resolve_master_msg())
 			{
-				case(MASTER_MSG_CHECK):{break;}
+				case(MASTER_MSG_CHECK):{on_check();break;}
 				case(MASTER_MSG_GET):{on_get_good(); break;}
+				case(MASTER_MSG_DROP_GOOD):{on_drop_good();break;}
+				case(MASTER_MSG_DROP_TRAY):{on_drop_tray();break;}
 			}
 			new_master_msg = 0;
 		}
+		//处理模组发来的消息
 		if(new_zmodule_msg)
 		{
 			//printf("%s\n",UART5_JSON_BUF);

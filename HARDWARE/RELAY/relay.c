@@ -77,7 +77,11 @@ void hang()
 	delay_ms(200);
 	RELAY_RED_LOW = !TRIG;
 	RELAY_BLACK_HIGH = !TRIG;
-	
-
 }
 
+void push()
+{
+	reachOut();
+	hang();
+	drawBack();
+}

@@ -15,6 +15,14 @@ int resolve_zmodule_msg()
 	root1 = cJSON_Parse((char *)UART5_JSON_BUF);
 	
 	//printf("%s\n",USART1_JSON_BUF);
+	//CRC校验
+	if(UART5_JSON_CRC != crc8_calculate(UART5_JSON_BUF,strlen((char *)UART5_JSON_BUF)))
+	{
+		//此时还没有parse root1，可以直接return了
+		printf("error! wrong crc\n");
+		return ZMODULE_MSG_WRONG_CRC;
+	}
+	
 	//JSON 有效性判断
 	if(root1 == NULL) return ZMODULE_MSG_WRONG_JSON;
 	

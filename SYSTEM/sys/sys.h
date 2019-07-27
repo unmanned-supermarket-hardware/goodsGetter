@@ -97,11 +97,15 @@
 #define RTIR   2  //上升沿触发
 								   
 //自定义全局状态						 
-#define IDLE -1
-#define GOING_TO_HEIGHT 0
-#define GOT_GOOD 1
 
-//
+
+#define IDLE 0
+#define GOING_TO_HEIGHT 1
+#define GOT_GOOD 2
+#define PUSH_GOOD 3
+#define DROP_TRAY 4
+
+//缩回来时要到达的深度
 #define DEFALT_DEPTH 0.1
 
 #include <string.h> 		 //strlen						 
@@ -119,6 +123,7 @@
 #include "master_communication.h"
 #include "zmodule_communication.h"
 #include "common_communication.h"
+#include "wdg.h"
 //JTAG模式设置定义
 #define JTAG_SWD_DISABLE   0X02
 #define SWD_ENABLE         0X01

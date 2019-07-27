@@ -66,6 +66,8 @@ double d2 =0;
 char d2Str[5];
 u8 USART2_RX_FLAG = 0;
 extern double current_depth_in_m;
+extern u32 distanceModuleMonitor ;
+extern int is_distance_right;
 //接收状态
 //bit15，	接收完成标志
 //bit14，	接收到0x0d
@@ -96,15 +98,21 @@ int USART2_IRQHandler(void)
 						sprintf(strTemp,"%s\r\n",d2Str);
 						
 						//usart1_sendString(strTemp,strlen(strTemp));
+						distanceModuleMonitor = 0; //每接到一组数据就清零
 						if(USART2_RX_BUF[0] =='D')
 						{
 				
 							current_depth_in_m = atof(d2Str);
 							//current_depth_mm = 5;
+							
+							is_distance_right = 1;
 						}
 							
 						else
-							current_depth_in_m =-1;
+						{
+							current_depth_in_m = -1;
+							is_distance_right = 0;
+						}
 						//-------------------
 
 						USART2_RX_STA = 0;
@@ -400,7 +408,7 @@ void uart5_init(u32 pclk1,u32 bound)
 
 
 /**************************************************************************
-函数功能：串口5接收中断
+函数功能：串口5接收中断,连接线性模组
 入口参数：无
 返回  值：无
 **************************************************************************/
@@ -410,13 +418,16 @@ u8 UART5_JSON_BUF[256]; //接收到的数据
 u8 UART5_RX_STA=0; 
 u16 UART5_JSON_SIZE = 0;
 u16 UART5_JSON_INDEX = 0;
-
+u8	UART5_JSON_CRC = 0;
 #define UART_IDLE 0
 #define WELL 1 //收到#
 #define EXCLAMATION 2 //收到！
 #define HIGH_SIZE 3
 #define LOW_SIZE 4
-#define JSON_DATA 5
+#define JSON_END 5
+#define STAR 6
+#define CRC_CHECK 7
+#define AND 8
 
 int UART5_IRQHandler(void)
 {	
@@ -444,9 +455,19 @@ int UART5_IRQHandler(void)
                     UART5_JSON_BUF[UART5_JSON_INDEX]=res; 
                     UART5_JSON_BUF[UART5_JSON_SIZE]= '\0'; 
                     UART5_JSON_INDEX = 0;
+                    UART5_RX_STA = JSON_END;
+                }                   
+                break;
+            }
+						case(JSON_END):     {if(res == '*')                             UART5_RX_STA = STAR;               break;}
+            case(STAR):             {UART5_JSON_CRC = res;             			UART5_RX_STA = CRC_CHECK;      break;}
+            case(CRC_CHECK):  
+            {
+                if(res == '&')
+                {
                     UART5_RX_STA = UART_IDLE;
                     new_zmodule_msg = 1;
-                }                   
+                }
                 break;
             }
         }

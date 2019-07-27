@@ -98,13 +98,18 @@ u8 USART1_JSON_BUF[256]; //接收到的数据
 u8 USART1_RX_STA=0; 
 u16 USART1_JSON_SIZE = 0;
 u16 USART1_JSON_INDEX = 0;
+u8	USART1_JSON_CRC = 0;
 
 #define UART_IDLE 0
 #define WELL 1 //收到#
 #define EXCLAMATION 2 //收到！
 #define HIGH_SIZE 3
 #define LOW_SIZE 4
-#define JSON_DATA 5
+#define JSON_END 5
+#define STAR 6
+#define CRC_CHECK 7
+#define AND 8
+
 void USART1_IRQHandler(void)
 {
 	u8 res;	
@@ -119,8 +124,8 @@ void USART1_IRQHandler(void)
 		//--------------------------------------
 		switch(USART1_RX_STA)
 		{
-			case(UART_IDLE):	{if(res == '#') 			USART1_RX_STA = WELL;					break;}
-			case(WELL):				{if(res == '!') 			USART1_RX_STA = EXCLAMATION;	break;}
+			case(UART_IDLE):	{if(res == '#') 							USART1_RX_STA = WELL;					break;}
+			case(WELL):				{if(res == '!') 							USART1_RX_STA = EXCLAMATION;	break;}
 			case(EXCLAMATION):{USART1_JSON_SIZE = res<<8; 	USART1_RX_STA = HIGH_SIZE;		break;}
 			case(HIGH_SIZE):	{USART1_JSON_SIZE += res; 		USART1_RX_STA = LOW_SIZE;			break;}
 			case(LOW_SIZE):		
@@ -130,14 +135,25 @@ void USART1_IRQHandler(void)
 					USART1_JSON_BUF[USART1_JSON_INDEX]=res; 
 					USART1_JSON_INDEX++;
 				}
-				else if(USART1_JSON_INDEX == USART1_JSON_SIZE -1) //最后一个字节了
+				else if(USART1_JSON_INDEX == USART1_JSON_SIZE -1) //JSON的最后一个字节了
 				{
 					USART1_JSON_BUF[USART1_JSON_INDEX]=res; 
 					USART1_JSON_BUF[USART1_JSON_SIZE]= '\0'; 
 					USART1_JSON_INDEX = 0;
+					USART1_RX_STA = JSON_END;
+					
+				}					
+				break;
+			}
+			case(JSON_END):		{if(res == '*')								USART1_RX_STA = STAR; 				break;}
+			case(STAR):				{USART1_JSON_CRC = res; 			USART1_RX_STA = CRC_CHECK;		break;}
+			case(CRC_CHECK):  
+			{
+				if(res == '&')
+				{
 					USART1_RX_STA = UART_IDLE;
 					new_master_msg = 1;
-				}					
+				}
 				break;
 			}
 		}	
