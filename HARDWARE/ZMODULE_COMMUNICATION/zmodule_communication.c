@@ -72,7 +72,7 @@ void send_height_to_module()
 }
 
 //如果接到模组传来的“已经移动到目标高度”的消息，立即执行次函数（取货（伸出去，打开电磁铁，缩回来，给主控发消息告知自己已拿到货物）global_state = GOT_GOOD;）	
-void on_arrive_height(void)
+void on_arrive_height_msg(void)
 {
 	const int SUCCESS = 0;
 	const int FAIL = -1;
@@ -103,4 +103,23 @@ void on_arrive_height(void)
 	//清理内存
 	cJSON_Delete(root);
 	
+}
+
+void check_zmodule(void)
+{
+	cJSON *root;
+	char strSend[MAX_MSG_SIZE];
+	u8 strSendLen;
+	root=cJSON_CreateObject();
+
+	cJSON_AddStringToObject(root,"businessType","0024");
+	strSendLen = generate_send_str(root,strSend);
+	if(strSendLen >0)
+	{
+		//发送
+		sendMsgToModule(strSend,strSendLen);
+	}
+
+	//清理内存
+	cJSON_Delete(root);
 }

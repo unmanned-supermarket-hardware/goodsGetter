@@ -59,14 +59,14 @@ int resolve_master_msg()
 }
 
 
-void on_check(void)
+void on_check_msg(void)
 {
 	report_state();
 }
 
 
 //如果接到取货命令，立即执行此函数（给模组发消息，global_state = GOING_TO_HEIGHT;）
-void on_get_good(void)
+void on_get_good_msg(void)
 {
 	send_height_to_module();
 	global_state = GOING_TO_HEIGHT;
@@ -74,12 +74,12 @@ void on_get_good(void)
 
 
 
-void on_drop_good(void) //如果接到主控传来的卸货命令，立即执行次函数（push())
+void on_drop_good_msg(void) //如果接到主控传来的卸货命令，立即执行次函数（push())
 {
 	push();
 	global_state = PUSH_GOOD;
 }
-void on_drop_tray(void)//如果接到主控传来的丢盘子命令，立即执行次函数(setMagnet(off))
+void on_drop_tray_msg(void)//如果接到主控传来的丢盘子命令，立即执行次函数(setMagnet(off))
 {
 	setMagnet(MAGNET_OFF);
 	global_state = IDLE;

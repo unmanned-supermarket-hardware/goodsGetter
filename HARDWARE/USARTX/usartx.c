@@ -111,7 +111,7 @@ int USART2_IRQHandler(void)
 						else
 						{
 							current_depth_in_m = -1;
-							is_distance_right = 0;
+							is_distance_right = 1;
 						}
 						//-------------------
 

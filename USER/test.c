@@ -138,10 +138,10 @@ int main(void)
 			//printf("%s\n",USART1_JSON_BUF);
 			switch(resolve_master_msg())
 			{
-				case(MASTER_MSG_CHECK):{on_check();break;}
-				case(MASTER_MSG_GET):{on_get_good(); break;}
-				case(MASTER_MSG_DROP_GOOD):{on_drop_good();break;}
-				case(MASTER_MSG_DROP_TRAY):{on_drop_tray();break;}
+				case(MASTER_MSG_CHECK):{on_check_msg();break;}
+				case(MASTER_MSG_GET):{on_get_good_msg(); break;}
+				case(MASTER_MSG_DROP_GOOD):{on_drop_good_msg();break;}
+				case(MASTER_MSG_DROP_TRAY):{on_drop_tray_msg();break;}
 			}
 			new_master_msg = 0;
 		}
@@ -151,7 +151,7 @@ int main(void)
 			//printf("%s\n",UART5_JSON_BUF);
 			switch(resolve_zmodule_msg())
 			{
-				case(ZMODULE_MSG_ARRIVE_HEIGHT):{on_arrive_height(); break;}
+				case(ZMODULE_MSG_ARRIVE_HEIGHT):{on_arrive_height_msg(); break;}
 	
 			}
 			new_zmodule_msg = 0;

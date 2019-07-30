@@ -25,13 +25,13 @@ extern int is_distance_right ;      //表示红外接收数据正常，为D = ***m，而非Erro
 int resolve_master_msg(void);  //解析主控通过串口一传来的命令，返回businessType，并给目标height和depth全局变量赋值
 
 
-void on_check(void);
-void on_get_good(void);   //如果接到取货命令，立即执行次函数（给模组发消息，global_state = GOING_TO_HEIGHT;）
+void on_check_msg(void);
+void on_get_good_msg(void);   //如果接到取货命令，立即执行次函数（给模组发消息，global_state = GOING_TO_HEIGHT;）
 
 
-void on_drop_good(void);  //如果接到主控传来的卸货命令，立即执行次函数（push())
-void on_drop_tray(void);//如果接到主控传来的丢盘子命令，立即执行次函数(setMagnet(off))
-void on_check(void);
+void on_drop_good_msg(void);  //如果接到主控传来的卸货命令，立即执行次函数（push())
+void on_drop_tray_msg(void);//如果接到主控传来的丢盘子命令，立即执行次函数(setMagnet(off))
+
 
 void report_state(void); //向主控汇报当前情况
 #endif
