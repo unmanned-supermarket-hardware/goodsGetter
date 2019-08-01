@@ -52,6 +52,7 @@ int resolve_master_msg()
 		 cJSON_Delete(heightJSON);
 		 cJSON_Delete(depthJSON);
 	}
+
  
 	cJSON_Delete(root1);
 	cJSON_Delete(businessTypeJSON);
@@ -77,11 +78,13 @@ void on_get_good_msg(void)
 void on_drop_good_msg(void) //如果接到主控传来的卸货命令，立即执行次函数（push())
 {
 	push();
+	report_drop_good();
 	global_state = PUSH_GOOD;
 }
 void on_drop_tray_msg(void)//如果接到主控传来的丢盘子命令，立即执行次函数(setMagnet(off))
 {
 	setMagnet(MAGNET_OFF);
+	report_drop_tray();
 	global_state = IDLE;
 }
 
@@ -117,6 +120,52 @@ void report_state(void) //向主控汇报当前情况
 		//发送
 		sendMsgToMaster(strSend,strSendLen);
 	}
+	//清理内存
+	cJSON_Delete(root);
+}
+void report_drop_tray(void) //向主控汇报当前情况
+{
+	cJSON *root;
+	char strSend[MAX_MSG_SIZE];
+	u8 strSendLen;
+
+	const int SUCCESS = 0;
+	const int FAIL = -1;
+	
+	root=cJSON_CreateObject();
+
+	cJSON_AddStringToObject(root,"businessType","0019");
+	cJSON_AddNumberToObject(root,"Result",SUCCESS);
+	strSendLen = generate_send_str(root,strSend);
+	if(strSendLen >0)
+	{
+		//发送
+		sendMsgToMaster(strSend,strSendLen);
+	}
+
+	//清理内存
+	cJSON_Delete(root);
+}
+void report_drop_good(void) //向主控汇报当前情况
+{
+	cJSON *root;
+	char strSend[MAX_MSG_SIZE];
+	u8 strSendLen;
+
+	const int SUCCESS = 0;
+	const int FAIL = -1;
+	
+	root=cJSON_CreateObject();
+
+	cJSON_AddStringToObject(root,"businessType","0017");
+	cJSON_AddNumberToObject(root,"Result",SUCCESS);
+	strSendLen = generate_send_str(root,strSend);
+	if(strSendLen >0)
+	{
+		//发送
+		sendMsgToMaster(strSend,strSendLen);
+	}
+
 	//清理内存
 	cJSON_Delete(root);
 }

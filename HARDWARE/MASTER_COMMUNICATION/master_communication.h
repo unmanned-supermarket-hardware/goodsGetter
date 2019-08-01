@@ -8,8 +8,8 @@
 
 #define MASTER_MSG_CHECK  13
 #define MASTER_MSG_GET  14
-#define MASTER_MSG_DROP_GOOD  15
-#define MASTER_MSG_DROP_TRAY  16
+#define MASTER_MSG_DROP_GOOD  16
+#define MASTER_MSG_DROP_TRAY  18
 
 
 extern double destination_height;
@@ -34,5 +34,7 @@ void on_drop_tray_msg(void);//如果接到主控传来的丢盘子命令，立即执行次函数(setMa
 
 
 void report_state(void); //向主控汇报当前情况
+void report_drop_tray(void); //向主控汇报当前情况
+void report_drop_good(void); //向主控汇报当前情况
 #endif
 

@@ -18,7 +18,7 @@
 u8 reset_cmd[10] = 									{0x23 ,0x00 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 };
 u8 velocity_mode_cmd[10] = 					{0x23 ,0x01 ,0x03 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55	};
 u8 velocity_position_mode_cmd[10] =	{0x23 ,0x01 ,0x05 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55	};
-u8 stop_cmd[10] = 									{0x23 ,0x04 ,0x13 ,0x88 ,0x00 ,0x00 ,0x55 ,0x55 ,0x55 ,0x55 };
+u8 stop_cmd[10] = 									{0x23 ,0x04 ,0x00 ,0x00 ,0x00 ,0x00 ,0x55 ,0x55 ,0x55 ,0x55 };
 u8 receive_data_cmd[10] = 					{0x23 ,0x0A ,0x09 ,0x00 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 };
 u8 stop_receive_data_cmd[10] = 			{0x23 ,0x0A ,0x00 ,0x00 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 };
 u8 check_online_cmd[10] = 					{0x23 ,0x0F ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 };
@@ -93,18 +93,22 @@ double diameterInM = 0.03864;
 void motor_set_velocity(u8 motor,double  velocityInMs)
 {
 	int velocityInRpm = (int)(velocityInMs * 960 / (diameterInM * pi));  //here 要进行单位转换
-	
+	int i;
 	set_velocity_cmd[motor][2] = (u8)((TEMP_PWM>>8)&0xff);
 	set_velocity_cmd[motor][3] = (u8)(TEMP_PWM&0xff);
 	set_velocity_cmd[motor][4] = (u8)((velocityInRpm>>8)&0xff);
 	set_velocity_cmd[motor][5] = (u8)(velocityInRpm&0xff);
 	
 	//printf("rpm:%d, cmd:%x%x\n",velocityInRpm,set_velocity_cmd[motor][4],set_velocity_cmd[motor][5]);
+	printf("\n");
+	for(i=0;i<10;i++)
+		printf("%2x ",set_velocity_cmd[motor][i]);
+	printf("\n");
 	motor_send_cmd(motor,set_velocity_cmd[motor]) ;	
 }
 
 /**************************实现函数**********************************************
-*功    能:		停止（不建议使用，更建议setvelocity为0）
+*功    能:		停止（不建议setvelocity为0，防止线长影响通信，更建议使用这个，因为把pwv也设为了0）
 *********************************************************************************/
 void motor_stop(u8 motor)
 {
@@ -126,50 +130,85 @@ void motor_check_on_line(u8 motor)
 //控制取货电机移动到某个位置
 //depthInMm：取货电机移动到的位置的货物深度，单位：Mm
 
-int state =-1;
-#define FAR 0
-#define NEAR 1
-#define TOO_MUCH 2
+#define STOP -1
+#define FAR2FAR 0
+#define NEAR2FAR 1
+#define FAR2BACK 2
+#define NEAR2BACK 3
+
+#define DIR_FAR -1
+#define DIR_BACK 1
+
+
+int state = STOP;
 int goTo(double depthInM)
 {
+	double distance2Go;
 	printf("goto");
+	
 	while(1)   //红外表示还没到那个位置
 	{
 		
 		if(current_depth_in_m < 0 )  //红外传感器错误
 		{
 			printf("error");
-			motor_set_velocity(GET_MOTOR,0);
+			motor_stop(GET_MOTOR);
 			return -1;
 		}
-		else if(depthInM - current_depth_in_m >SLOW_RANGE && state != FAR)  //离目标差的还远，快速运动
+		
+		distance2Go = depthInM - current_depth_in_m;
+		//伸出去
+		if(distance2Go > 0)
 		{
-			printf("far");
-			motor_set_velocity(GET_MOTOR,FAST_VELOCITY_MS);
-			delay_ms(10);
-			state = FAR;
+			if(distance2Go >SLOW_RANGE && state != FAR2FAR)  //还差的远，快点儿走
+			{
+				printf("FAR2FAR");
+				motor_set_velocity(GET_MOTOR,FAST_VELOCITY_MS * DIR_FAR);
+				
+			
+				state = FAR2FAR;
+			}
+			else if(distance2Go > EQUAL_RANGE && distance2Go < SLOW_RANGE && state!= NEAR2FAR)   
+			{
+				printf("NEAR2FAR");
+				motor_set_velocity(GET_MOTOR,SLOW_VELOCITY_MS* DIR_FAR);
+			
+				state = NEAR2FAR;
+			}
+			else if(distance2Go < EQUAL_RANGE && distance2Go > -EQUAL_RANGE )   
+			{
+				printf("arrive");
+				motor_stop(GET_MOTOR);
+				
+				state = STOP;
+				return 1;
+			}
 		}
-		else if(depthInM - current_depth_in_m > EQUAL_RANGE && depthInM - current_depth_in_m < SLOW_RANGE && state!= NEAR)   //还没到，但快到了，减速
+		//下降
+		else if(distance2Go < 0) 
 		{
-			printf("slow");
-			motor_set_velocity(GET_MOTOR,SLOW_VELOCITY_MS);
-			delay_ms(10);
-			state = NEAR;
-		}
-		else if(depthInM - current_depth_in_m < EQUAL_RANGE && depthInM - current_depth_in_m > -EQUAL_RANGE )   //到了，停下
-		{
-			printf("arrive");
-			motor_set_velocity(GET_MOTOR,0);
-			delay_ms(10);
-			state = -1;
-			return 1;
-		}
-		else if(depthInM - current_depth_in_m < -EQUAL_RANGE && state!= TOO_MUCH)  //超了，往回走
-		{
-			printf("too much");
-			motor_set_velocity(GET_MOTOR,-SLOW_VELOCITY_MS);
-			delay_ms(10);
-			state = TOO_MUCH;
+			if(-distance2Go >SLOW_RANGE && state != FAR2BACK)  //还差的远，快点儿走
+			{
+				printf("FAR2BACK");
+				motor_set_velocity(GET_MOTOR,FAST_VELOCITY_MS * DIR_BACK);
+				
+				state = FAR2BACK;
+			}
+			else if(-distance2Go > EQUAL_RANGE && -distance2Go < SLOW_RANGE && state!= NEAR2BACK)   
+			{
+				printf("NEAR2BACK");
+				motor_set_velocity(GET_MOTOR,SLOW_VELOCITY_MS* DIR_BACK);
+			
+				state = NEAR2BACK;
+			}
+			else if(-distance2Go < EQUAL_RANGE && distance2Go > -EQUAL_RANGE )   
+			{
+				printf("arrive");
+				motor_stop(GET_MOTOR);
+ 
+				state = STOP;
+				return 1;
+			}
 		}
 	}
 	

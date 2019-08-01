@@ -9,7 +9,7 @@
 
 #define FAST_VELOCITY_MS 0.2  //离目标位置距离大于 SLOW_RANGE 时，以FAST_VELOCITY_MS  米/秒 的速度移动
 #define SLOW_VELOCITY_MS 0.1   //离目标位置距离小于 SLOW_RANGE 时，SLOW_VELOCITY_MS  米/秒 的速度移动
-#define SLOW_RANGE 0.05  //快到的还有  SLOW_RANGE  m 的时候减速
+#define SLOW_RANGE 5  //快到的还有  SLOW_RANGE  m 的时候减速
 #define EQUAL_RANGE 0.005  //距离容差（距离小于该值的可忽略不计）
 /*
 取货单元中共有两个电机

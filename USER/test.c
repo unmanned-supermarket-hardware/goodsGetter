@@ -49,72 +49,28 @@ int main(void)
 	delay_ms(500);
 
 
-//	//取货电机初始化
-//	printf("电机初始化");
-//	delay_ms(500);
-//	motor_reset(GET_MOTOR);  //不知为何第一遍发送会缺头一个字节，因此发送两边
-//	delay_ms(600);
-//	motor_reset(DROP_MOTOR);  //不知为何第一遍发送会缺头一个字节，因此发送两边
-//	delay_ms(600);
-//	
-//	motor_enter_velocity_mode(GET_MOTOR);
-//	delay_ms(500);
-//	motor_enter_velocity_mode(DROP_MOTOR);
-//	delay_ms(500);
+	printf("朋友我重启了！\n");
+	//取货电机初始化
+	printf("电机初始化");
+	delay_ms(500);
+	motor_reset(GET_MOTOR);  //不知为何第一遍发送会缺头一个字节，因此发送两边
+	delay_ms(600);
+
+	
+	motor_enter_velocity_mode(GET_MOTOR);
+	delay_ms(500);
+
 	
 		//定时器初始化：定时输出distance供debug
 		//TIM2_Int_Init(60000,7199);//10Khz的计数频率，计数到5000为5000ms  6S
 		TIM3_Int_Init(5000,7199);//10Khz的计数频率，计数到5000为500ms  
-		//独立看门狗初始化
-		//625是1s，溢出时间与参数二成正比
-		//IWDG_Init(4,625);    //与分频数为64,重载值为625,溢出时间为1s	   
+
 		
-		
-	//-----------------------------------json模拟区：主控发来取货命令
-		
-//	
-//		root=cJSON_CreateObject();
-
-//		cJSON_AddStringToObject(root,"businessType","0014");
-//		cJSON_AddNumberToObject(root,"Height",0.5);
-//		cJSON_AddNumberToObject(root,"Depth",0.6);
-//		 
-//		strSendLen = generate_send_str(root,strSend);
-//		
-//		
-//		usart1_sendString(strSend,strSendLen);
-//		
-//		strJson =cJSON_Print(root); 
-//		printf("json_size = %d\n",strlen(strJson));
-//-----------------------------------json模拟区		：模组高度到位命令
-//		root=cJSON_CreateObject();
-
-//		cJSON_AddStringToObject(root,"businessType","0023");
-//		cJSON_AddNumberToObject(root,"Result",1);
-
-//		
-//		strSendLen = generate_send_str(root,strSend);
-//		usart1_sendString(strSend,strSendLen);
-//-----------------------------------json模拟区		：主控查询状态
-//		root=cJSON_CreateObject();
-
-//		cJSON_AddStringToObject(root,"businessType","0013");
 
 
-//		strSendLen = generate_send_str(root,strSend);
-//		usart1_sendString(strSend,strSendLen);
 	while(1)
 	{
-		
-		//printf("bottom_key  = %d top_key = %d",is_bottom_key_pressed(),is_bottom_key_pressed());
-		//printf("%d\n",key_scan());
-//		goTo(0.82);
-//		setMagnet(MAGNET_ON);
-//		delay_ms(1000);
-//		goTo(0.62);
-//		setMagnet(MAGNET_OFF);
-//		delay_ms(1000);
-		
+
 		
 		//测距模块监视
 		distanceModuleMonitor++;
@@ -156,6 +112,7 @@ int main(void)
 			}
 			new_zmodule_msg = 0;
 		}
+
 
 	}	 
 }

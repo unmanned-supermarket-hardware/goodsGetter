@@ -84,4 +84,5 @@ void push()
 	reachOut();
 	hang();
 	drawBack();
+	hang();
 }

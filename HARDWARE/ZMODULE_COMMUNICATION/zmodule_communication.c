@@ -77,13 +77,20 @@ void on_arrive_height_msg(void)
 	const int SUCCESS = 0;
 	const int FAIL = -1;
 	
+
 	cJSON *root;
 	char strSend[MAX_MSG_SIZE];
 	u8 strSendLen;
 	
 	int result = SUCCESS;
+	
+			delay_ms(1000);
+	delay_ms(1000);
+	
 	if(goTo(destination_depth)!= 1) result = FAIL;
 	setMagnet(MAGNET_ON);
+	delay_ms(1000);
+	delay_ms(1000);
 	if(goTo(DEFALT_DEPTH)!= 1) result = FAIL;
 	
 	//¸æÖªÖ÷¿Ø
