@@ -20,13 +20,12 @@ void key_init(void)
 	RCC->APB2ENR|=1<<2;     //使能PORTA时钟
 
 	JTAG_Set(SWD_ENABLE);	//关闭JTAG,开启SWD
-  
-	GPIOA->CRL&=0X00FFFFFF; //PA6,7设置成输入    
-  GPIOA->CRL|=0X88000000;
 
+	GPIOA->CRH &= 0x0FFFFFFF; //PA15 设置成输入      
+	GPIOA->CRH |= 0X80000000;
 	
-	GPIOA->ODR|=1<<6;	   	//PA6上拉
-	GPIOA->ODR|=1<<7;	   	//PA7上拉
+	GPIOA->ODR|=1<<15;	   	//PA6上拉  15
+
 
 } 
 //按键处理函数
@@ -42,13 +41,13 @@ u8 key_scan()
 {	 
 	u8 key_up=1;//按键按松开标志,支持连按		  
 
-	if(key_up&&(TOP_KEY==0||BOTTOM_KEY==0))
+	if(key_up && (KEY==0) )
 	{
 		delay_ms(10);//去抖动 
 		key_up=0;
-		if(TOP_KEY==0)return TOP_KEY_PRES;
-		else if(BOTTOM_KEY==0)return BOTTOM_KEY_PRES;
-	}else if(TOP_KEY==1&&BOTTOM_KEY==1)key_up=1; 	     
+		if(KEY==0)return KEY_PRES;
+		
+	}else if(KEY==1)key_up=1; 	     
 	return 0;// 无按键按下
 }
 

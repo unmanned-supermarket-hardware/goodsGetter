@@ -87,11 +87,14 @@ void on_arrive_height_msg(void)
 			delay_ms(1000);
 	delay_ms(1000);
 	
-	if(goTo(destination_depth)!= 1) result = FAIL;
+	//向前伸出直到红外距离为y
+	//将destination_depth 改为y
+	if(goToByLight(destination_depth)!= 1) result = FAIL;
 	setMagnet(MAGNET_ON);
 	delay_ms(1000);
 	delay_ms(1000);
-	if(goTo(DEFALT_DEPTH)!= 1) result = FAIL;
+	//收回直到碰到限位开关
+	if(goToByLight(DEFALT_DEPTH)!= 1) result = FAIL;
 	
 	//告知主控
 

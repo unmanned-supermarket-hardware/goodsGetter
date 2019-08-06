@@ -218,8 +218,15 @@ void uart3_init(u32 pclk2,u32 bound)
 u8 USART3_RX_BUF[64]; //接收到的数据
 u16 USART3_RX_STA=0; 
 u8 USART3_COUNT = 0;
-char d3Str[5];
-double d3=0;
+u8 new_motor_data = 0;
+
+	short int real_current  ;
+	short int real_velocity ;
+	int real_position ;
+
+#define U3_RX_IDLE 0
+#define BYTE1 1
+#define BYTE2 2
 //接收状态
 //bit15，	接收完成标志
 //bit14，	接收到0x0d
@@ -229,11 +236,31 @@ int USART3_IRQHandler(void)
 {	
 	u8 res;
 	char strTemp[64];
+
 	if(USART3->SR&(1<<5))//接收到数据
 	{	      
 			res =USART3->DR;
-			sprintf(strTemp,"u3:%c\n",res);
-			usart3_sendString(strTemp,strlen(strTemp));
+		switch(USART3_RX_STA)
+		{
+			case(U3_RX_IDLE): {if(res == 0x23) USART3_RX_STA = BYTE1; break;}
+			case(BYTE1):			{if(res == 0x0B) USART3_RX_STA = BYTE2; USART3_COUNT = 1;break;}
+			case(BYTE2):			
+			{
+				USART3_COUNT++;
+				USART3_RX_BUF[USART3_COUNT] = res;
+				if(USART3_COUNT >= 9)
+				{
+					real_current = 	(USART3_RX_BUF[2]<<8)|USART3_RX_BUF[3];
+					real_velocity = (USART3_RX_BUF[4]<<8)|USART3_RX_BUF[5];
+					real_position = (USART3_RX_BUF[6]<<24)|(USART3_RX_BUF[7]<<16)|(USART3_RX_BUF[8]<<8)|USART3_RX_BUF[9];
+					USART3_RX_STA = U3_RX_IDLE;
+					new_motor_data = 1;
+				}
+			}
+		}
+			
+
+
 	}
 return 0;	
 }
@@ -248,6 +275,7 @@ void usart3_send(u8 data)
 /**************************实现函数**********************************************
 *功    能:		usart3发送一个字符串
 *********************************************************************************/
+
 void usart3_sendString(char *data,u8 len)
 {
 	int i=0;

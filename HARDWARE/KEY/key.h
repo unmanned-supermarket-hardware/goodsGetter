@@ -7,12 +7,10 @@
 NO接PA6 和PA7
 */
 
-#define TOP_KEY_PRES	1		//TOP_KEY按下
-#define BOTTOM_KEY_PRES	2		//BOTTOM_KEY按下
+#define KEY_PRES	1		//KEY按下
 
 
-#define TOP_KEY  PAin(6)   	//PC5  
-#define BOTTOM_KEY  PAin(7)	 	//PA15 
+#define KEY  PAin(15)	 	//PA15 
 
 void key_init(void);		//IO初始化
 u8 key_scan(void);		//按键扫描函数

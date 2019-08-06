@@ -50,10 +50,11 @@ void motor_check_on_line(u8 motor);
 
 //ÉÏ²ãº¯Êý
 
-int goTo(double depthInM);
+int goToByLight(double destinationInM);
+int goToByKey();
+int goToByMotor(double destinationInM);
 
-void fallDown(void);
-void raiseUp(void);
+
 //--------------------------------
 void motor_stop(u8 motor);
 void motor_init(u8 motor);

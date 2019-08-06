@@ -19,13 +19,14 @@ u8 reset_cmd[10] = 									{0x23 ,0x00 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 ,0x5
 u8 velocity_mode_cmd[10] = 					{0x23 ,0x01 ,0x03 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55	};
 u8 velocity_position_mode_cmd[10] =	{0x23 ,0x01 ,0x05 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55	};
 u8 stop_cmd[10] = 									{0x23 ,0x04 ,0x00 ,0x00 ,0x00 ,0x00 ,0x55 ,0x55 ,0x55 ,0x55 };
-u8 receive_data_cmd[10] = 					{0x23 ,0x0A ,0x09 ,0x00 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 };
+u8 receive_data_cmd[10] = 					{0x23 ,0x0A ,0xFF ,0x00 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 };  //第三位是发送的周期，单位为mm，我们这里选最大256
 u8 stop_receive_data_cmd[10] = 			{0x23 ,0x0A ,0x00 ,0x00 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 };
 u8 check_online_cmd[10] = 					{0x23 ,0x0F ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 ,0x55 };
 
 
 u8 set_velocity_cmd[2][10] =			{{ 0x23 ,0x04 ,0x13 ,0x88 ,0x01 ,0xF4 ,0x55 ,0x55 ,0x55 ,0x55	},
 																		{0x23 ,0x04 ,0x13 ,0x88 ,0x01 ,0xF4 ,0x55 ,0x55 ,0x55 ,0x55	}};
+
 
 
 u8 set_velocity_position_cmd[2][10]={{0x23 ,0x06 ,0x13 ,0x88 ,0x02 ,0xEE ,0x00 ,0x00 ,0x3E ,0x80	},
@@ -85,7 +86,7 @@ void motor_init(u8 motor)
 /**************************实现函数**********************************************
 *功    能:		设置速度
 *********************************************************************************/
-double diameterInM = 0.03864;
+double diameterInM = 0.03864;   //齿轮直径
 #define pi 3.14
 //diameterInM * pi = 0.1213296
 //设置速度
@@ -125,7 +126,7 @@ void motor_check_on_line(u8 motor)
 
 
 /**************************实现函数**********************************************
-*功    能:		控制 取货电机 移动到某个位置
+*功    能:		控制 取货电机 移动到某个位置，停止条件是测距模块测到的数据达到某条件
 *********************************************************************************/
 //控制取货电机移动到某个位置
 //depthInMm：取货电机移动到的位置的货物深度，单位：Mm
@@ -141,7 +142,7 @@ void motor_check_on_line(u8 motor)
 
 
 int state = STOP;
-int goTo(double depthInM)
+int goToByLight(double destinationInM)
 {
 	double distance2Go;
 	printf("goto");
@@ -156,7 +157,7 @@ int goTo(double depthInM)
 			return -1;
 		}
 		
-		distance2Go = depthInM - current_depth_in_m;
+		distance2Go = destinationInM - current_depth_in_m;
 		//伸出去
 		if(distance2Go > 0)
 		{
@@ -215,28 +216,56 @@ int goTo(double depthInM)
 }
 
 /**************************实现函数**********************************************
-*功    能:		控制卸货电机  使取货单元落下卸货
+*功    能:		使取货单元收回到头（往回缩直到触发限位开关）
 *********************************************************************************/
-void fallDown()
+int goToByKey()
 {
-	motor_set_velocity(DROP_MOTOR,-SLOW_VELOCITY_MS);
-	while(key_scan() != BOTTOM_KEY_PRES)
+	motor_set_velocity(GET_MOTOR,SLOW_VELOCITY_MS * DIR_BACK);
+	while(key_scan() != KEY_PRES)
 	{
 		;
 	}
-	motor_set_velocity(DROP_MOTOR,0);
-	
+	motor_set_velocity(GET_MOTOR,0);
 }
 
 /**************************实现函数**********************************************
-*功    能:		控制卸货电机  使取货单元升起取货
+*功    能:		使取货单元以指定速度移动到指定位置，不依据测距模块得到的距离数据
 *********************************************************************************/
-void raiseUp()
+extern 	short int real_current  ;
+extern 	short int real_velocity ;
+extern 	int real_position ;
+int goToByMotor(double destinationInM)
 {
-	motor_set_velocity(DROP_MOTOR,SLOW_VELOCITY_MS);
-	while(key_scan() != TOP_KEY_PRES)
-	{
-		;
-	}
-	motor_set_velocity(DROP_MOTOR,0);
+	u8 Data[10];
+	u32 test;
+	int velocityInRpm = (int)(SLOW_VELOCITY_MS * 960 / (diameterInM * pi));  //here 要进行单位转换
+	int positionInQc =(destinationInM /  (diameterInM * pi) ) * 32000 ;
+	
+	motor_reset(GET_MOTOR);
+	delay_ms(600);
+	motor_enter_velocity_position_mode(GET_MOTOR);
+	
+	
+	//发指令：反馈信息
+	motor_send_cmd(GET_MOTOR,receive_data_cmd);
+	
+	//发指令让他动
+
+	set_velocity_position_cmd[GET_MOTOR][4] = (unsigned char)((velocityInRpm>>8)&0xff);
+	set_velocity_position_cmd[GET_MOTOR][5] = (unsigned char)(velocityInRpm&0xff);
+	
+	set_velocity_position_cmd[GET_MOTOR][6] = (unsigned char)((positionInQc>>24)&0xff);
+	set_velocity_position_cmd[GET_MOTOR][7] = (unsigned char)((positionInQc>>16)&0xff);
+	set_velocity_position_cmd[GET_MOTOR][8] = (unsigned char)((positionInQc>>8)&0xff);
+	set_velocity_position_cmd[GET_MOTOR][9] = (unsigned char)(positionInQc &0xff);
+	motor_send_cmd(GET_MOTOR,set_velocity_position_cmd[GET_MOTOR]);
+	
+	while(real_velocity == 0);
+
+	while(real_position != positionInQc);
+	
+	printf("arrive!!!!!\n");
+	//发指令：停止反馈信息
+	motor_send_cmd(GET_MOTOR,stop_receive_data_cmd);
 }
+

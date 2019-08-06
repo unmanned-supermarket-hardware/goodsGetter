@@ -12,15 +12,18 @@
 //Copyright(C) 广州市星翼电子科技有限公司 2009-2019
 //All rights reserved									  
 ////////////////////////////////////////////////////////////////////////////////// 	  
- extern u8 USART2_RX_BUF[64]; //接收到的数据
- 
+extern u8 USART2_RX_BUF[64]; //接收到的数据
+extern 	short int real_current  ;
+extern 	short int real_velocity ;
+extern 	int real_position ;
  
 //定时器3中断服务程序	 
 void TIM3_IRQHandler(void)
 { 		    		  			    
 	if(TIM3->SR&0X0001)//溢出中断
 	{
-		printf("current_depth_in_m =  \nd2Str = %s\n\n",USART2_RX_BUF);		   	
+		//printf("current_depth_in_m =  \nd2Str = %s\n\n",USART2_RX_BUF);		   	
+		//printf("%d\t%d\t%d\n",real_current,real_velocity,real_position);
 		//printf("%d\n",atoi("0015"));
 	}				   
 	TIM3->SR&=~(1<<0);//清除中断标志位 	    
