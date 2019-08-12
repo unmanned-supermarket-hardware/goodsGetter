@@ -16,13 +16,31 @@ extern u8 USART2_RX_BUF[64]; //接收到的数据
 extern 	short int real_current  ;
 extern 	short int real_velocity ;
 extern 	int real_position ;
- 
+extern int global_state;
+
+/*
+
+#define IDLE 0
+#define GOING_TO_HEIGHT 1
+#define ARRIVE_HEIGHT 2
+#define GOT_GOOD 3
+#define PUSH_GOOD 4
+#define DROP_TRAY 5
+*/
 //定时器3中断服务程序	 
 void TIM3_IRQHandler(void)
 { 		    		  			    
 	if(TIM3->SR&0X0001)//溢出中断
 	{
-		//printf("current_depth_in_m =  \nd2Str = %s\n\n",USART2_RX_BUF);		   	
+		printf("current_depth_in_m =  \nd2Str = %s\n",USART2_RX_BUF);	
+		
+		switch(global_state)
+		{
+			case(0):{printf("idle\n\n");break;}
+			case(1):{printf("GOING_TO_HEIGHT，正在等待模组到达位置\n\n");break;}
+			case(2):{printf("ARRIVE_HEIGHT模组到了\n\n");break;}
+			case(3):{printf("GOT_GOOD取到货物\n\n");break;}
+		}
 		//printf("%d\t%d\t%d\n",real_current,real_velocity,real_position);
 		//printf("%d\n",atoi("0015"));
 	}				   

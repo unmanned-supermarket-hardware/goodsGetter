@@ -42,12 +42,17 @@ int resolve_master_msg()
 	}
 	else if(res == MASTER_MSG_GET)  //如果是取货，还要给height和depth赋值
 	{
-			cJSON *heightJSON,*depthJSON;
+		 cJSON *heightJSON,*depthJSON;
 		 heightJSON = cJSON_GetObjectItem(root1, "Height");
 		 depthJSON = cJSON_GetObjectItem(root1, "Depth");
-		 
+		 //here：在这里处理目标深度和盘子宽度的关系
+		
 		 destination_height = heightJSON->valuedouble;
-		 destination_depth = depthJSON->valuedouble;
+	printf("%f - %f + (0.5 * %f) \n",current_depth_in_m,OFFSET,depthJSON->valuedouble);
+//		 if(OFFSET - current_depth_in_m < 0.5 * (depthJSON->valuedouble))
+//			 destination_depth = current_depth_in_m - OFFSET + (0.5* (depthJSON->valuedouble));
+//		 else
+			 destination_depth = OFFSET - (0.5* (depthJSON->valuedouble));
 		 
 		 cJSON_Delete(heightJSON);
 		 cJSON_Delete(depthJSON);
@@ -69,7 +74,7 @@ void on_check_msg(void)
 //如果接到取货命令，立即执行此函数（给模组发消息，global_state = GOING_TO_HEIGHT;）
 void on_get_good_msg(void)
 {
-	send_height_to_module();
+	send_height_to_module(destination_height);
 	global_state = GOING_TO_HEIGHT;
 }
 

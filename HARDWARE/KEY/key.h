@@ -4,7 +4,7 @@
 /*
 低电平有效，
 行程开关COM接低电平
-NO接PA6 和PA7
+NO接PA15·
 */
 
 #define KEY_PRES	1		//KEY按下

@@ -1,41 +1,37 @@
 #ifndef __SYS_H
 #define __SYS_H	  
 #include <stm32f10x.h>   
-//////////////////////////////////////////////////////////////////////////////////	 
-//本程序只供学习使用，未经作者许可，不得用于其它任何用途
-//ALIENTEK STM32开发板
-//系统时钟初始化（适合STM32F10x系列）		   
-//正点原子@ALIENTEK
-//技术论坛:www.openedv.com
-//创建日期:2010/1/1
-//版本：V1.9
-//版权所有，盗版必究。
-//Copyright(C) 广州市星翼电子科技有限公司 2009-2019
-//All rights reserved
-//********************************************************************************
-//V1.4修改说明
-//把NVIC KO了,没有使用任何库文件!
-//加入了JTAG_Set函数
-//V1.5 20120322
-//增加void INTX_DISABLE(void)和void INTX_ENABLE(void)两个函数
-//V1.6 20120412
-//1,增加MSR_MSP函数												    
-//2,修改VECT_TAB_RAM的默认偏移,设置为0.
-//V1.7 20120818
-//1,添加ucos支持配置宏SYSTEM_SUPPORT_UCOS
-//2,修改了注释
-//3,去掉了不常用函数BKP_Write
-//V1.8 20131120
-//1,修改头文件为stm32f10x.h,不再使用stm32f10x_lib.h及其相关头文件
-//V1.9 20150109
-//1,修改头文件为MY_NVIC_Init函数部分代码以支持向量号大于63的中断的设置
-//2,修改WFI_SET/INTX_DISABLE/INTX_ENABLE等函数的实现方式
-//V2.0 20150322
-//修改SYSTEM_SUPPORT_UCOS为SYSTEM_SUPPORT_OS
-////////////////////////////////////////////////////////////////////////////////// 	  
 
-//0,不支持OS
-//1,支持OS
+
+
+//******************************************************
+//随时要改的参数
+#define diameterInM  0.03864   //齿轮直径
+#define DIR_FAR 1  //电机移动方向
+#define DIR_BACK -1  //电机移动方向
+#define DEFALT_DEPTH 0.1   //缩回来时要到达的深度
+#define OFFSET 0.22   //测距模块激光发射点 到 电磁铁中心的水平距离 
+
+
+#define FAST_VELOCITY_MS 0.2  //离目标位置距离大于 SLOW_RANGE 时，以FAST_VELOCITY_MS  米/秒 的速度移动
+#define SLOW_VELOCITY_MS 0.025   //离目标位置距离小于 SLOW_RANGE 时，SLOW_VELOCITY_MS  米/秒 的速度移动
+#define SLOW_RANGE 0.05  //快到的还有  SLOW_RANGE  m 的时候减速
+#define EQUAL_RANGE 0.005  //距离容差（距离小于该值的可忽略不计）
+
+//*********************************************************
+//自定义全局状态						 
+
+#define IDLE 0
+#define GOING_TO_HEIGHT 1
+#define ARRIVE_HEIGHT 2
+#define GOT_GOOD 3
+#define PUSH_GOOD 4
+#define DROP_TRAY 5
+
+//*********************************************************
+
+
+
 #define SYSTEM_SUPPORT_OS		0		//定义系统文件夹是否支持OS
 																	    
 	 
@@ -96,17 +92,7 @@
 #define FTIR   1  //下降沿触发
 #define RTIR   2  //上升沿触发
 								   
-//自定义全局状态						 
 
-
-#define IDLE 0
-#define GOING_TO_HEIGHT 1
-#define GOT_GOOD 2
-#define PUSH_GOOD 3
-#define DROP_TRAY 4
-
-//缩回来时要到达的深度
-#define DEFALT_DEPTH 0.1
 
 #include <string.h> 		 //strlen						 
 #include <stdlib.h>	        //atof()  malloc()
@@ -124,6 +110,9 @@
 #include "zmodule_communication.h"
 #include "common_communication.h"
 #include "wdg.h"
+
+
+
 //JTAG模式设置定义
 #define JTAG_SWD_DISABLE   0X02
 #define SWD_ENABLE         0X01

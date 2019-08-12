@@ -86,7 +86,7 @@ void motor_init(u8 motor)
 /**************************实现函数**********************************************
 *功    能:		设置速度
 *********************************************************************************/
-double diameterInM = 0.03864;   //齿轮直径
+
 #define pi 3.14
 //diameterInM * pi = 0.1213296
 //设置速度
@@ -137,15 +137,14 @@ void motor_check_on_line(u8 motor)
 #define FAR2BACK 2
 #define NEAR2BACK 3
 
-#define DIR_FAR -1
-#define DIR_BACK 1
+
 
 
 int state = STOP;
 int goToByLight(double destinationInM)
 {
 	double distance2Go;
-	printf("goto");
+	printf("goto: %f",destinationInM);
 	
 	while(1)   //红外表示还没到那个位置
 	{
@@ -157,7 +156,7 @@ int goToByLight(double destinationInM)
 			return -1;
 		}
 		
-		distance2Go = destinationInM - current_depth_in_m;
+		distance2Go = -destinationInM + current_depth_in_m;
 		//伸出去
 		if(distance2Go > 0)
 		{
@@ -178,8 +177,9 @@ int goToByLight(double destinationInM)
 			}
 			else if(distance2Go < EQUAL_RANGE && distance2Go > -EQUAL_RANGE )   
 			{
-				printf("arrive");
 				motor_stop(GET_MOTOR);
+				printf("arrive");
+				
 				
 				state = STOP;
 				return 1;
@@ -220,12 +220,13 @@ int goToByLight(double destinationInM)
 *********************************************************************************/
 int goToByKey()
 {
-	motor_set_velocity(GET_MOTOR,SLOW_VELOCITY_MS * DIR_BACK);
+	motor_set_velocity(GET_MOTOR,FAST_VELOCITY_MS * DIR_BACK);
 	while(key_scan() != KEY_PRES)
 	{
 		;
 	}
 	motor_set_velocity(GET_MOTOR,0);
+	return 1;
 }
 
 /**************************实现函数**********************************************

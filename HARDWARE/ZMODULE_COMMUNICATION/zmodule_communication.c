@@ -49,7 +49,7 @@ int resolve_zmodule_msg()
 }
 
 
-void send_height_to_module()
+void send_height_to_module(double height_in_m)
 {
 
 	cJSON *root;
@@ -59,7 +59,7 @@ void send_height_to_module()
 	root=cJSON_CreateObject();
 
 	cJSON_AddStringToObject(root,"businessType","0022");
-	cJSON_AddNumberToObject(root,"Height",destination_height);
+	cJSON_AddNumberToObject(root,"Height",height_in_m);
 	strSendLen = generate_send_str(root,strSend);
 	if(strSendLen >0)
 	{
@@ -77,41 +77,50 @@ void on_arrive_height_msg(void)
 	const int SUCCESS = 0;
 	const int FAIL = -1;
 	
-
 	cJSON *root;
 	char strSend[MAX_MSG_SIZE];
 	u8 strSendLen;
 	
 	int result = SUCCESS;
 	
-			delay_ms(1000);
-	delay_ms(1000);
-	
-	//向前伸出直到红外距离为y
-	//将destination_depth 改为y
-	if(goToByLight(destination_depth)!= 1) result = FAIL;
-	setMagnet(MAGNET_ON);
-	delay_ms(1000);
-	delay_ms(1000);
-	//收回直到碰到限位开关
-	if(goToByLight(DEFALT_DEPTH)!= 1) result = FAIL;
-	
-	//告知主控
+	delay_ms(500);
 
-	
-	root=cJSON_CreateObject();
-
-	cJSON_AddStringToObject(root,"businessType","0015");
-	cJSON_AddNumberToObject(root,"Result",result);
-	strSendLen = generate_send_str(root,strSend);
-	if(strSendLen >0)
+	if(global_state == GOING_TO_HEIGHT)
 	{
-		//发送
-		sendMsgToMaster(strSend,strSendLen);
+		printf("arrive height 1111~");
+		global_state = ARRIVE_HEIGHT;
+		
+		if(goToByLight(destination_depth)!= 1) result = FAIL;
+		
+		//抬起一点
+		send_height_to_module(destination_height + 0.03);
+		
 	}
-	global_state = GOT_GOOD;
-	//清理内存
-	cJSON_Delete(root);
+	
+	else if(global_state == ARRIVE_HEIGHT)
+	{
+		printf("arrive 222222\n");
+		global_state = GOT_GOOD;
+		setMagnet(MAGNET_ON);
+		delay_ms(500);
+		//收回直到碰到限位开关
+		if(goToByKey()!= 1) result = FAIL;
+		//告知主控
+		root=cJSON_CreateObject();
+
+		cJSON_AddStringToObject(root,"businessType","0015");
+		cJSON_AddNumberToObject(root,"Result",result);
+		strSendLen = generate_send_str(root,strSend);
+		if(strSendLen >0)
+		{
+			//发送
+			sendMsgToMaster(strSend,strSendLen);
+		}
+		global_state = GOT_GOOD;
+		//清理内存
+		cJSON_Delete(root);
+	}
+	
 	
 }
 

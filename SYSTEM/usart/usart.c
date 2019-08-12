@@ -86,9 +86,7 @@ void usart1_sendString(char *data,u8 len)
 	}
 	
 }
-u8 startOpen = 0;
-u8 startClose = 0;
-u8 isOpen = 0;
+
 
 /**************************实现函数**********************************************
 *功    能:		usart1接收中断
