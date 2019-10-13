@@ -144,7 +144,7 @@ int state = STOP;
 int goToByLight(double destinationInM)
 {
 	double distance2Go;
-	printf("goto: %f",destinationInM);
+	printf("gotoByLight: %f",destinationInM);
 	
 	while(1)   //红外表示还没到那个位置
 	{

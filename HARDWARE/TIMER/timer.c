@@ -18,21 +18,13 @@ extern 	short int real_velocity ;
 extern 	int real_position ;
 extern int global_state;
 
-/*
 
-#define IDLE 0
-#define GOING_TO_HEIGHT 1
-#define ARRIVE_HEIGHT 2
-#define GOT_GOOD 3
-#define PUSH_GOOD 4
-#define DROP_TRAY 5
-*/
 //定时器3中断服务程序	 
 void TIM3_IRQHandler(void)
 { 		    		  			    
 	if(TIM3->SR&0X0001)//溢出中断
 	{
-		printf("current_depth_in_m =  \nd2Str = %s\n",USART2_RX_BUF);	
+		printf("d2Str = %s\t",USART2_RX_BUF);	
 		
 		switch(global_state)
 		{
@@ -42,7 +34,7 @@ void TIM3_IRQHandler(void)
 			case(3):{printf("GOT_GOOD取到货物\n\n");break;}
 		}
 		//printf("%d\t%d\t%d\n",real_current,real_velocity,real_position);
-		//printf("%d\n",atoi("0015"));
+		
 	}				   
 	TIM3->SR&=~(1<<0);//清除中断标志位 	    
 }

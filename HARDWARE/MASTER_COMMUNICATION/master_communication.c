@@ -15,7 +15,7 @@ int resolve_master_msg()
 	if(USART1_JSON_CRC != crc8_calculate(USART1_JSON_BUF,strlen((char *)USART1_JSON_BUF)))
 	{
 		//此时还没有parse root1，可以直接return了
-		printf("error! wrong crc\n");
+		printf("----------------------------------\nerror! wrong crc\n--------------------------------\n");
 		return MASTER_MSG_WRONG_CRC;
 	}
 	root1 = cJSON_Parse((char *)USART1_JSON_BUF);
@@ -52,7 +52,8 @@ int resolve_master_msg()
 //		 if(OFFSET - current_depth_in_m < 0.5 * (depthJSON->valuedouble))
 //			 destination_depth = current_depth_in_m - OFFSET + (0.5* (depthJSON->valuedouble));
 //		 else
-			 destination_depth = OFFSET - (0.5* (depthJSON->valuedouble));
+		//修改
+			 destination_depth = OFFSET - (0.5* (depthJSON->valuedouble)) ;
 		 
 		 cJSON_Delete(heightJSON);
 		 cJSON_Delete(depthJSON);
@@ -73,7 +74,8 @@ void on_check_msg(void)
 
 //如果接到取货命令，立即执行此函数（给模组发消息，global_state = GOING_TO_HEIGHT;）
 void on_get_good_msg(void)
-{
+{	
+
 	send_height_to_module(destination_height);
 	global_state = GOING_TO_HEIGHT;
 }
@@ -82,13 +84,19 @@ void on_get_good_msg(void)
 
 void on_drop_good_msg(void) //如果接到主控传来的卸货命令，立即执行次函数（push())
 {
+	printf("收到卸货指令");
 	push();
 	report_drop_good();
 	global_state = PUSH_GOOD;
 }
 void on_drop_tray_msg(void)//如果接到主控传来的丢盘子命令，立即执行次函数(setMagnet(off))
 {
+	//伸出去一点
+	goToByLight(current_depth_in_m - 0.2);
 	setMagnet(MAGNET_OFF);
+	//回缩
+	goToByKey();
+	
 	report_drop_tray();
 	global_state = IDLE;
 }

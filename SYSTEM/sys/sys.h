@@ -7,13 +7,13 @@
 //******************************************************
 //随时要改的参数
 #define diameterInM  0.03864   //齿轮直径
-#define DIR_FAR 1  //电机移动方向
-#define DIR_BACK -1  //电机移动方向
+#define DIR_FAR -1  //电机移动方向
+#define DIR_BACK 1  //电机移动方向
 #define DEFALT_DEPTH 0.1   //缩回来时要到达的深度
-#define OFFSET 0.22   //测距模块激光发射点 到 电磁铁中心的水平距离 
+#define OFFSET 0.19   //测距模块激光发射点 到 电磁铁中心的水平距离 
 
 
-#define FAST_VELOCITY_MS 0.2  //离目标位置距离大于 SLOW_RANGE 时，以FAST_VELOCITY_MS  米/秒 的速度移动
+#define FAST_VELOCITY_MS 0.075  //离目标位置距离大于 SLOW_RANGE 时，以FAST_VELOCITY_MS  米/秒 的速度移动
 #define SLOW_VELOCITY_MS 0.025   //离目标位置距离小于 SLOW_RANGE 时，SLOW_VELOCITY_MS  米/秒 的速度移动
 #define SLOW_RANGE 0.05  //快到的还有  SLOW_RANGE  m 的时候减速
 #define EQUAL_RANGE 0.005  //距离容差（距离小于该值的可忽略不计）

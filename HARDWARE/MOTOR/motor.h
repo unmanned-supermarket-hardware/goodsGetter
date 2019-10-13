@@ -3,7 +3,7 @@
 #include "sys.h"
 
 
-#define TEMP_PWM  2500
+#define TEMP_PWM  5000
 #define GET_MOTOR 0
 #define DROP_MOTOR 1
 

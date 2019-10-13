@@ -352,8 +352,8 @@ int UART4_IRQHandler(void)
 	if(UART4->SR&(1<<5))//接收到数据
 	{	      
 			res =UART4->DR;
-			sprintf(strTemp,"u4:%c\n",res);
-			uart4_sendString(strTemp,strlen(strTemp));
+			//sprintf(strTemp,"u4:%c\n",res);
+			//uart4_sendString(strTemp,strlen(strTemp));
 	}
 return 0;	
 }
@@ -493,7 +493,7 @@ int UART5_IRQHandler(void)
             {
                 if(res == '&')
                 {
-                    UART5_RX_STA = UART_IDLE;
+                    UART5_RX_STA = UART_IDLE; 
                     new_zmodule_msg = 1;
                 }
                 break;

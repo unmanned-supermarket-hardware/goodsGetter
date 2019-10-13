@@ -91,10 +91,8 @@ void on_arrive_height_msg(void)
 		global_state = ARRIVE_HEIGHT;
 		
 		if(goToByLight(destination_depth)!= 1) result = FAIL;
-		
 		//抬起一点
-		send_height_to_module(destination_height + 0.03);
-		
+		send_height_to_module(destination_height + 0.05);
 	}
 	
 	else if(global_state == ARRIVE_HEIGHT)
@@ -121,7 +119,13 @@ void on_arrive_height_msg(void)
 		cJSON_Delete(root);
 	}
 	
-	
+//	else if(global_state == PUSH_GOOD)
+//	{
+//		printf("----------------------------抖动完毕~--------------------");
+//		
+//		report_drop_tray();
+//		global_state = IDLE;
+//	}
 }
 
 void check_zmodule(void)

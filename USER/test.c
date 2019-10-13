@@ -48,17 +48,18 @@ int main(void)
 
 	//红外初始化
 	//printf("测距模块初始化");
-	//delay_ms(500);
+	delay_ms(500);
 	usart2_sendString("iFACM:0",7);
 	delay_ms(500);
 
 
-	//printf("朋友我重启了！\n");
+	printf("朋友我重启了！\n");
 	//取货电机初始化
 	//printf("电机初始化");
-	delay_ms(500);
+	delay_ms(1000);
+	delay_ms(1000);
 	motor_reset(GET_MOTOR);  //不知为何第一遍发送会缺头一个字节，因此发送两边
-	delay_ms(600);
+	delay_ms(1000);
 
 	
 	motor_enter_velocity_mode(GET_MOTOR);
@@ -69,32 +70,52 @@ int main(void)
 	//TIM2_Int_Init(60000,7199);//10Khz的计数频率，计数到5000为5000ms  6S
 	TIM3_Int_Init(5000,7199);//10Khz的计数频率，计数到5000为500ms  
 
-	//goToByLight(0.2);
+//	goToByLight(0.2);
+//	goToByKey();
 
-
-//motor_set_velocity(GET_MOTOR,-SLOW_VELOCITY_MS);
+//push();
+//setMagnet(MAGNET_ON);
+//delay_ms(1000);
+//delay_ms(1000);
+//delay_ms(1000);
+//setMagnet(MAGNET_OFF);
+	//motor_set_velocity(GET_MOTOR,DIR_FAR * SLOW_VELOCITY_MS);
 
 
       root=cJSON_CreateObject();
 
       cJSON_AddStringToObject(root,"businessType","0014");
-      cJSON_AddNumberToObject(root,"Height",0.623);
-			cJSON_AddNumberToObject(root,"Depth",0.083);
+      cJSON_AddNumberToObject(root,"Height",1.15);
+			cJSON_AddNumberToObject(root,"Depth",0.079);
 
       
       strSendLen = generate_send_str(root,strSend);
       usart1_sendString(strSend,strSendLen);
+		//motor_set_velocity(GET_MOTOR,0.2);
 		
+//		motor_set_velocity(GET_MOTOR,FAST_VELOCITY_MS * DIR_FAR);
+//			goToByLight(0.70);
+//			delay_ms(1000);
+//			goToByKey();
+//		setMagnet(MAGNET_ON);
+//		delay_ms(1000);
+//		setMagnet(MAGNET_OFF);
+		//goToByLight(0.3);
+		//push();
+		//	reachOut();
+//			drawBack();
+		printf("start\n");
 	while(1)
 	{
 
 
 		//测距模块监视
 		distanceModuleMonitor++;
-		if(distanceModuleMonitor>655344)
+		if(distanceModuleMonitor>955344)
 		{
-			//printf("too long without distance data received!\n");
+			printf("一段时间没收到距离数据\n");
 			is_distance_receiving = 0;
+			usart2_sendString("iFACM:0",7);
 		}
 		else
 			is_distance_receiving = 1;
@@ -109,6 +130,7 @@ int main(void)
 		if(new_master_msg)
 		{
 			//printf("%s\n",USART1_JSON_BUF);
+			printf("-------------------------------receive data---------------------\n");
 			switch(resolve_master_msg())
 			{
 				case(MASTER_MSG_CHECK):{on_check_msg();break;}
@@ -121,6 +143,7 @@ int main(void)
 		//处理模组发来的消息
 		if(new_zmodule_msg)
 		{
+			printf("---------------------------data from module-----------------");
 			//printf("%s\n",UART5_JSON_BUF);
 			switch(resolve_zmodule_msg())
 			{

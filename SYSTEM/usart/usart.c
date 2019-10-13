@@ -40,6 +40,13 @@ _sys_exit(int x)
 //重定向fputc函数
 //printf的输出，指向fputc，由fputc输出到串口
 //这里使用串口1(USART1)输出printf信息
+//int fputc(int ch, FILE *f)
+//{      
+//	while((UART4->SR&0X40)==0);//等待上一次串口数据发送完成  
+//	UART4->DR = (u8) ch;      	//写DR,串口1将发送数据
+//	return ch;
+//}
+
 int fputc(int ch, FILE *f)
 {      
 	while((USART1->SR&0X40)==0);//等待上一次串口数据发送完成  
@@ -150,6 +157,7 @@ void USART1_IRQHandler(void)
 				if(res == '&')
 				{
 					USART1_RX_STA = UART_IDLE;
+					printf("new");
 					new_master_msg = 1;
 				}
 				break;
